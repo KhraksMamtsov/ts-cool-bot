@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>code template</title>
+    <style>html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+code {
+  display: inline-block;
+  padding: 7px;
+  margin: 0;
+}
+
+pre {
+  margin: 0;
+}
+
+code[class*="language-"],
+pre[class*="language-"] {
+  margin: 0;
+  color: #ccc;
+  background: 0 0;
+  font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
+  font-size: 1em;
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  word-wrap: normal;
+  line-height: 1.5;
+  -moz-tab-size: 4;
+  -o-tab-size: 4;
+  tab-size: 4;
+  -webkit-hyphens: none;
+  -moz-hyphens: none;
+  -ms-hyphens: none;
+  hyphens: none;
+}
+
+:not(pre) > code[class*="language-"],
+pre[class*="language-"] {
+  background: #2d2d2d;
+}
+
+.token.block-comment,
+.token.cdata,
+.token.comment,
+.token.doctype,
+.token.prolog {
+  color: #999;
+}
+
+.token.punctuation {
+  color: #ccc;
+}
+
+.token.attr-name,
+.token.deleted,
+.token.namespace,
+.token.tag {
+  color: #e2777a;
+}
+
+.token.function-name {
+  color: #6196cc;
+}
+
+.token.boolean,
+.token.function,
+.token.number {
+  color: #f08d49;
+}
+
+.token.class-name,
+.token.constant,
+.token.property,
+.token.symbol {
+  color: #f8c555;
+}
+
+.token.atrule,
+.token.builtin,
+.token.important,
+.token.keyword,
+.token.selector {
+  color: #cc99cd;
+}
+
+.token.attr-value,
+.token.char,
+.token.regex,
+.token.string,
+.token.variable {
+  color: #7ec699;
+}
+
+.token.entity,
+.token.operator,
+.token.url {
+  color: #67cdcc;
+}
+
+.token.bold,
+.token.important {
+  font-weight: 700;
+}
+
+.token.italic {
+  font-style: italic;
+}
+
+.token.entity {
+  cursor: help;
+}
+
+.token.inserted {
+  color: green;
+}
+</style>
+</head>
+
+<body>
+    <code class='language-typescript'><pre><span class="token keyword">interface</span> <span class="token class-name">Point</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">x</span><span class="token operator">:</span> number
+  <span class="token literal-property property">y</span><span class="token operator">:</span> number
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">distance</span><span class="token punctuation">(</span><span class="token parameter"><span class="token literal-property property">a</span><span class="token operator">:</span> Point<span class="token punctuation">,</span> <span class="token literal-property property">b</span><span class="token operator">:</span> Point</span><span class="token punctuation">)</span><span class="token operator">:</span> number <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> Math<span class="token punctuation">.</span><span class="token function">sqrt</span><span class="token punctuation">(</span><span class="token punctuation">(</span>a<span class="token punctuation">.</span>x <span class="token operator">-</span> b<span class="token punctuation">.</span>x<span class="token punctuation">)</span> <span class="token operator">**</span> <span class="token number">2</span> <span class="token operator">+</span> <span class="token punctuation">(</span>a<span class="token punctuation">.</span>y <span class="token operator">-</span> b<span class="token punctuation">.</span>y<span class="token punctuation">)</span> <span class="token operator">**</span> <span class="token number">2</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">export</span> type ThemeDictSpacing <span class="token operator">=</span> Record<span class="token operator">&lt;</span>
+  <span class="token string">"s"</span> <span class="token operator">|</span> <span class="token string">"m"</span><span class="token punctuation">,</span>
+  number
+<span class="token operator">></span>
+type Test <span class="token operator">=</span> ThemeDictSpacing <span class="token operator">&amp;</span> number<span class="token punctuation">[</span><span class="token punctuation">]</span>
+<span class="token keyword">import</span> a <span class="token keyword">from</span> <span class="token string">"fp-ts"</span>
+
+<span class="token keyword">enum</span> ASd <span class="token punctuation">{</span>
+  asd <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span>
+  <span class="token comment">// a</span>
+  qwe <span class="token operator">=</span> <span class="token string">"qwe"</span><span class="token punctuation">,</span>
+  zxc <span class="token operator">=</span> <span class="token number">1</span> <span class="token operator">&lt;&lt;</span> <span class="token number">0</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">interface</span> <span class="token class-name">qqq</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">asd</span><span class="token operator">:</span> <span class="token number">123</span>
+<span class="token punctuation">}</span>
+
+@decor
+abstract <span class="token keyword">class</span> <span class="token class-name">Klass</span> <span class="token keyword">extends</span> <span class="token class-name">qqq</span> <span class="token punctuation">{</span>
+  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">const</span> s <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>asd
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+<span class="token keyword">function</span> <span class="token function">fun</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">:</span> <span class="token keyword">void</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> <span class="token boolean">false</span>
+<span class="token punctuation">}</span>
+
+declare module <span class="token string">"asd"</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+
+<span class="token keyword">const</span> <span class="token literal-property property">test</span><span class="token operator">:</span> Test <span class="token operator">=</span> Object<span class="token punctuation">.</span><span class="token function">assign</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">]</span><span class="token punctuation">,</span> dict<span class="token punctuation">)</span>
+</pre></code>
+</body>
+
+</html>
