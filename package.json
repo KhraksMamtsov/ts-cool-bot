@@ -38,13 +38,13 @@
     "husky": "^7.0.4",
     "nodemon": "^2.0.15",
     "onchange": "^7.1.0",
-    "prettier": "^2.5.1",
     "rimraf": "^3.0.0",
     "run-script-os": "^1.1.1",
     "ts-node": "^10.5.0",
     "typescript": "^4.5.5"
   },
   "dependencies": {
+    "prettier": "^2.5.1",
     "@types/prismjs": "^1.26.0",
     "eslint-plugin-jest": "^26.1.1",
     "handlebars": "^4.7.7",
