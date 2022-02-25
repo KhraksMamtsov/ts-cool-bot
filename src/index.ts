@@ -1,7 +1,7 @@
 import prism from "prismjs";
 import { format } from "prettier";
 import { promises as fs } from "fs";
-import nodeHtmlToImage from "node-html-to-image";
+// import nodeHtmlToImage from "node-html-to-image";
 import Handlebars from "handlebars";
 import { Telegraf } from "telegraf";
 
@@ -93,19 +93,19 @@ async function start() {
 
   await fs.writeFile("./image.html", result);
 
-  await nodeHtmlToImage({
-    output: "./image.png",
-    quality: 100,
-    selector: "code",
-    html: result,
-    puppeteerArgs: {
-      defaultViewport: {
-        height: 3000,
-        width: 1000,
-        deviceScaleFactor: 2,
-      },
-    },
-  }).then(() => console.log("The image was created successfully!"));
+  // await nodeHtmlToImage({
+  //   output: "./image.png",
+  //   quality: 100,
+  //   selector: "code",
+  //   html: result,
+  //   puppeteerArgs: {
+  //     defaultViewport: {
+  //       height: 3000,
+  //       width: 1000,
+  //       deviceScaleFactor: 2,
+  //     },
+  //   },
+  // }).then(() => console.log("The image was created successfully!"));
 }
 
 start();
