@@ -6,6 +6,7 @@ import Handlebars from "handlebars";
 import { Telegraf } from "telegraf";
 
 const source = `
+// hello ts
   interface Point {
     x: number,
     y: number,
