@@ -92,12 +92,23 @@ bot.on("text", async (ctx, next) => {
     .map((x) => x[2])
     .filter(isNotUndefined)
     .map((x) => decompressFromEncodedURIComponent(x))
-    .filter(isNotNull);
+    .filter(isNotNull)
+    .map((x) =>
+      format(x, {
+        parser: "typescript",
+        printWidth: 55,
+        tabWidth: 2,
+        semi: false,
+        bracketSpacing: false,
+        arrowParens: "avoid",
+      })
+    );
 
   if (isNotUndefined(codeBlocks)) {
     const answer = codeBlocks
       .map((codeBlock) => "```\n" + codeBlock + "\n```")
-      .join("\n\n");
+      .join("");
+
     const asd = await ctx.replyWithHTML(answer, {
       reply_to_message_id: ctx.message.message_id,
       parse_mode: "Markdown",
@@ -106,10 +117,6 @@ bot.on("text", async (ctx, next) => {
   }
 
   await next();
-});
-
-bot.start((ctx) => {
-  ctx.reply("Hello " + ctx.from.first_name + "!");
 });
 
 bot.launch();
