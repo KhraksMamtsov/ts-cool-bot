@@ -96,7 +96,7 @@ bot.on("text", async (ctx, next) => {
 
   if (isNotUndefined(codeBlocks)) {
     const answer = codeBlocks
-      .map((codeBlock) => "```" + codeBlock + "```")
+      .map((codeBlock) => "```\n" + codeBlock + "\n```")
       .join("\n\n");
     const asd = await ctx.replyWithHTML(answer, {
       reply_to_message_id: ctx.message.message_id,
