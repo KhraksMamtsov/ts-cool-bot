@@ -45,6 +45,7 @@ async function start() {
       selector: "code",
       html: result,
       puppeteerArgs: {
+        args: ["--no-sandbox"],
         defaultViewport: {
           height: 3000,
           width: 1000,
