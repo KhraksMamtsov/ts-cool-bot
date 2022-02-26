@@ -45,7 +45,7 @@ async function start() {
       selector: "code",
       html: result,
       puppeteerArgs: {
-        args: ["--no-sandbox"],
+        args: ["--no-sandbox"], // for run puppeteer in Heroku
         defaultViewport: {
           height: 3000,
           width: 1000,
@@ -97,6 +97,8 @@ async function start() {
             }
           );
         });
+
+      await Promise.all(answer);
     }
 
     await next();
