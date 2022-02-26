@@ -57,7 +57,7 @@ async function start() {
 
   const bot = new Telegraf(process.env.BOT_TOKEN!);
   bot.on("text", async (ctx, next) => {
-    console.log("text:", ctx.message.entities);
+    console.log("text:", ctx.message);
 
     const codeBlocks = ctx.message.entities
       ?.filter((x) => x.type === "url")
