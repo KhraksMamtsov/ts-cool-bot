@@ -89,6 +89,7 @@ async function start() {
         .map(async (x) => {
           const source = await x;
           console.log("typeof source: ", typeof source);
+          console.log("source: ", source);
 
           ctx.replyWithPhoto(
             {
