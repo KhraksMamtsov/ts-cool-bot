@@ -114,15 +114,18 @@ const bot = new Telegraf(process.env.BOT_TOKEN!);
 bot.command("oldschool", (ctx) => ctx.reply("Hello"));
 bot.command("modern", (ctx) => ctx.reply("Yo"));
 bot.command("hipster", Telegraf.reply("λ"));
+bot.on("message", async (ctx, next) => {
+  const asd = ctx.replyWithHTML("```code```", {
+    parse_mode: "Markdown",
+    disable_notification: true,
+  });
+  // ctx.message;
 
-bot.start((ctx) => {
-  ctx.reply('Hello ' + ctx.from.first_name + '!');
+  await next();
 });
 
-bot.help((ctx) => {
-  ctx.reply('Send /start to receive a greeting');
-  ctx.reply('Send /keyboard to receive a message with a keyboard');
-  ctx.reply('Send /quit to stop the bot');
+bot.start((ctx) => {
+  ctx.reply("Hello " + ctx.from.first_name + "!");
 });
 
 bot.launch();
