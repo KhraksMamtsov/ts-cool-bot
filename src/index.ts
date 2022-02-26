@@ -87,12 +87,15 @@ async function start() {
       const answer = codeBlocks
         .map((codeBlock) => getImageFromHtml(codeBlock) as Promise<Buffer>)
         .map(async (x) => {
-          const asd = await x;
+          const source = await x;
+          console.log("typeof source: ", typeof source);
+
           ctx.replyWithPhoto(
             {
-              source: asd,
+              source: source, // Buffer
             },
             {
+              disable_notification: true,
               reply_to_message_id: ctx.message.message_id,
             }
           );
