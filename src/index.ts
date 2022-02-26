@@ -5,6 +5,11 @@ import { promises as fs } from "fs";
 import Handlebars from "handlebars";
 import { Telegraf } from "telegraf";
 
+const CODEBLOCK_REGEX = /```(?:ts|typescript|js|javascript)?\n([\s\S]+)```/;
+
+export const PLAYGROUND_REGEX =
+  /https?:\/\/(?:www\.)?(?:typescriptlang|staging-typescript)\.org\/(?:play|dev\/bug-workbench)(?:\/index\.html)?\/?(\??(?:\w+=[^\s#&]*)?(?:\&\w+=[^\s#&]*)*)#code\/([\w\-%+_]+={0,4})/;
+
 const source = `
 // hello ts
   interface Point {
@@ -114,11 +119,28 @@ const bot = new Telegraf(process.env.BOT_TOKEN!);
 bot.command("oldschool", (ctx) => ctx.reply("Hello"));
 bot.command("modern", (ctx) => ctx.reply("Yo"));
 bot.command("hipster", Telegraf.reply("λ"));
-bot.on("message", async (ctx, next) => {
-  const asd = ctx.replyWithHTML("```code```", {
+bot.on("text", async (ctx, next) => {
+  console.log("text:", ctx.message);
+
+  const asd = await ctx.replyWithHTML("```code```", {
     parse_mode: "Markdown",
     disable_notification: true,
   });
+
+  console.log("asd: ", asd);
+  // ctx.message;
+
+  await next();
+});
+bot.on("message", async (ctx, next) => {
+  console.log("message:", ctx.message);
+
+  const asd = await ctx.replyWithHTML("```code```", {
+    parse_mode: "Markdown",
+    disable_notification: true,
+  });
+
+  console.log("asd: ", asd);
   // ctx.message;
 
   await next();
