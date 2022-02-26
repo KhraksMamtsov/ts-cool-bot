@@ -99,6 +99,7 @@ bot.on("text", async (ctx, next) => {
       .map((codeBlock) => "```" + codeBlock + "```")
       .join("\n\n");
     const asd = await ctx.replyWithHTML(answer, {
+      reply_to_message_id: ctx.message.message_id,
       parse_mode: "Markdown",
       disable_notification: true,
     });
