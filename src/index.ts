@@ -1,11 +1,13 @@
-import prism from "prismjs";
-import { format } from "prettier";
+import { pipe } from "fp-ts/lib/function";
+import * as O from "fp-ts/Option";
+import * as RNEA from "fp-ts/ReadonlyNonEmptyArray";
 import { promises as fs } from "fs";
-import { decompressFromEncodedURIComponent } from "lz-string";
-import nodeHtmlToImage from "node-html-to-image";
 import Handlebars from "handlebars";
+import nodeHtmlToImage from "node-html-to-image";
+import { format } from "prettier";
+import prism from "prismjs";
 import { Telegraf } from "telegraf";
-import { getSubstring } from "./utils";
+import * as PgLink from "./core/PgLink";
 
 const CODEBLOCK_REGEX = /```(?:ts|typescript|js|javascript)?\n([\s\S]+)```/;
 
@@ -59,52 +61,49 @@ async function start() {
   bot.on("text", async (ctx, next) => {
     console.log("text:", ctx.message);
 
-    const codeBlocks = ctx.message.entities
-      ?.filter((x) => x.type === "url")
-      .map((x) => getSubstring(ctx.message.text, x))
-      .map((x) => x.match(PLAYGROUND_REGEX))
-      .filter(isNotNull)
-      .map((x) => x[2])
-      .filter(isNotUndefined)
-      .map((x) => decompressFromEncodedURIComponent(x))
-      .filter(isNotNull)
-      .map((x) =>
-        format(x, {
-          parser: "typescript",
-          printWidth: 55,
-          tabWidth: 2,
-          semi: false,
-          bracketSpacing: false,
-          arrowParens: "avoid",
-        })
-      );
-
-    if (isNotUndefined(codeBlocks)) {
-      // const answer = codeBlocks
-      //   .map((codeBlock) => "```\n" + codeBlock + "\n```")
-      //   .join("");
-
-      const answer = codeBlocks
-        .map((codeBlock) => getImageFromHtml(codeBlock) as Promise<Buffer>)
-        .map(async (x) => {
-          const source = await x;
-          console.log("typeof source: ", typeof source);
-          console.log("source: ", source);
-
-          ctx.replyWithPhoto(
-            {
-              source: source, // Buffer
-            },
-            {
-              disable_notification: true,
-              reply_to_message_id: ctx.message.message_id,
-            }
+    const task = pipe(
+      PgLink.parseLinks(ctx.message.entities, ctx.message.text),
+      O.match(
+        (): Promise<unknown> => Promise.resolve(undefined),
+        (linkContents) => {
+          const codeBlocks = pipe(
+            linkContents,
+            RNEA.map((content) =>
+              format(content, {
+                parser: "typescript",
+                printWidth: 55,
+                tabWidth: 2,
+                semi: false,
+                bracketSpacing: false,
+                arrowParens: "avoid",
+              })
+            )
           );
-        });
 
-      await Promise.all(answer);
-    }
+          const answer = codeBlocks
+            .map((codeBlock) => getImageFromHtml(codeBlock) as Promise<Buffer>)
+            .map(async (x) => {
+              const source = await x;
+              console.log("typeof source: ", typeof source);
+              console.log("source: ", source);
 
+              ctx.replyWithPhoto(
+                {
+                  source: source, // Buffer
+                },
+                {
+                  disable_notification: true,
+                  reply_to_message_id: ctx.message.message_id,
+                }
+              );
+            });
+
+          return Promise.all(answer);
+        }
+      )
+    );
+
+    await task;
     await next();
   });
 
