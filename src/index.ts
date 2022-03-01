@@ -9,19 +9,6 @@ import prism from "prismjs";
 import { Telegraf } from "telegraf";
 import * as PgLink from "./core/PgLink";
 
-const CODEBLOCK_REGEX = /```(?:ts|typescript|js|javascript)?\n([\s\S]+)```/;
-
-export const PLAYGROUND_REGEX =
-  /https?:\/\/(?:www\.)?(?:typescriptlang|staging-typescript)\.org\/(?:play|dev\/bug-workbench)(?:\/index\.html)?\/?(\??(?:\w+=[^\s#&]*)?(?:\&\w+=[^\s#&]*)*)#code\/([\w\-%+_]+={0,4})/;
-
-function isNotUndefined<T>(x: T): x is Exclude<T, undefined> {
-  return x !== undefined;
-}
-
-function isNotNull<T>(x: T): x is Exclude<T, null> {
-  return x !== null;
-}
-
 async function start() {
   const pathsPromises = ["./src/index.hbs", "./src/styles.css"].map((x) => {
     return fs.readFile(x, "utf8");
