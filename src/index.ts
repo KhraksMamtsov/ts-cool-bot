@@ -19,6 +19,7 @@ import * as string from "./libs/string/string";
 import * as LzString from "./api/ls-string/LzString";
 import * as Telegraf from "./api/telegraf/Telegraf";
 import * as ErrorWithCause from "./error/ErrorWithCause";
+import { getErrorOrUnknownError } from "./error/parseError";
 
 process.on("uncaughtException", (error, origin) => {
   pipe(
@@ -28,12 +29,26 @@ process.on("uncaughtException", (error, origin) => {
       context: {
         origin,
       },
-    })(identity),
+    })(getErrorOrUnknownError),
     ErrorWithCause.show,
     console.log
   );
 
   process.exit(1);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  pipe(
+    reason,
+    ErrorWithCause.create({
+      type: "unhandledRejection",
+      context: {
+        promise,
+      },
+    })(getErrorOrUnknownError),
+    ErrorWithCause.show,
+    console.log
+  );
 });
 
 const [match, matchP, matchI, matchPI] = makeMatchers("type");
