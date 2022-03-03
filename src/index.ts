@@ -84,9 +84,17 @@ const bootstrap = pipe(
   })
 );
 
+type ToImageDeps = { html: { options: Html.ToImageOptions } };
+export const toImageRTE = pipe(
+  RTE.asks<ToImageDeps, ToImageDeps["html"]>((x) => x.html),
+  RTE.map(({ options }) => Html.toImage(options))
+);
+
 const getImage = pipe(
   RTE.ask<{ template: string; rawCode: string }>(),
-  RTE.chainTaskEitherK(({ template, rawCode }) =>
+  RTE.bindTo("deps"),
+  RTE.bindW("toImage", () => toImageRTE),
+  RTE.chainTaskEitherK(({ toImage, deps: { rawCode, template } }) =>
     pipe(
       rawCode,
       Prism.highlight("typescript"),
@@ -94,20 +102,7 @@ const getImage = pipe(
         pipe(template, string.replaceAll("{{code}}", highlightedCode))
       ),
       TE.fromEither,
-      TE.chainW(
-        Html.toImage({
-          quality: 100,
-          selector: "code",
-          puppeteerArgs: {
-            args: ["--no-sandbox"], // for run puppeteer in Heroku
-            defaultViewport: {
-              height: 3000,
-              width: 1000,
-              deviceScaleFactor: 2,
-            },
-          },
-        })
-      )
+      TE.chainW(toImage)
     )
   )
 );
@@ -117,7 +112,11 @@ export const from =
   (...args: Args) =>
     constant(fn(...args));
 
-function subscribe({ bot, template }: { bot: Telegraf.Bot; template: string }) {
+function subscribe({
+  bot,
+  template,
+  html,
+}: ToImageDeps & { bot: Telegraf.Bot; template: string }) {
   bot.on("text", async (ctx, next) => {
     console.log("text:", ctx.message);
 
@@ -157,7 +156,9 @@ function subscribe({ bot, template }: { bot: Telegraf.Bot; template: string }) {
     if (O.isSome(codeBlocks)) {
       const runAndReactOnCodeBlock = pipe(
         codeBlocks.value,
-        RNEA.map((codeBlock) => getImage({ template, rawCode: codeBlock })),
+        RNEA.map((codeBlock) =>
+          getImage({ html, template, rawCode: codeBlock })
+        ),
         RNEA.map(
           TE.bimap(
             from(console.error),
@@ -201,13 +202,17 @@ function subscribe({ bot, template }: { bot: Telegraf.Bot; template: string }) {
 }
 const subscribeR = pipe(
   //
-  R.ask<{ bot: Telegraf.Bot; template: string }>(),
+  R.ask<{ bot: Telegraf.Bot; template: string } & ToImageDeps>(),
   R.map(from(subscribe))
 );
 
 const program = pipe(
   bootstrap,
-  RTE.chainFirstIOK(subscribeR),
+  RTE.bindTo("bootstrapResult"),
+  RTE.bindW("toImageDeps", () => RTE.ask<ToImageDeps>()),
+  RTE.chainFirstIOK(({ bootstrapResult, toImageDeps }) =>
+    subscribeR({ ...bootstrapResult, ...toImageDeps })
+  ),
   RTE.match(console.error, (x) => x)
 );
 
@@ -219,5 +224,19 @@ void program({
   bot: {
     botToken: process.env.BOT_TOKEN!,
     options: {},
+  },
+  html: {
+    options: {
+      quality: 100,
+      selector: "code",
+      puppeteerArgs: {
+        args: ["--no-sandbox"], // for run puppeteer in Heroku
+        defaultViewport: {
+          height: 3000,
+          width: 1000,
+          deviceScaleFactor: 4,
+        },
+      },
+    },
   },
 });
