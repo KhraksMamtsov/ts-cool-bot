@@ -20,6 +20,22 @@ import * as LzString from "./api/ls-string/LzString";
 import * as Telegraf from "./api/telegraf/Telegraf";
 import * as ErrorWithCause from "./error/ErrorWithCause";
 
+process.on("uncaughtException", (error, origin) => {
+  pipe(
+    error,
+    ErrorWithCause.create({
+      type: "UncaughtException",
+      context: {
+        origin,
+      },
+    })(identity),
+    ErrorWithCause.show,
+    console.log
+  );
+
+  process.exit(1);
+});
+
 const [match, matchP, matchI, matchPI] = makeMatchers("type");
 
 const TEParSequenceS = Ap.sequenceS(TE.ApplyPar);

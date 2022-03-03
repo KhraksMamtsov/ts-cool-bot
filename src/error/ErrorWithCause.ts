@@ -73,8 +73,8 @@ export function show(error: ErrorWithCause | Error, offset = 0) {
           E.getOrElse(() => "Stringify Error")
         ),
       ],
-      ["Cause", show(error.cause, offset + 2)],
       ["Stack", error.stack ?? "---"],
+      ["Cause", show(error.cause, offset + 2)],
     ];
   } else {
     resultInfo = [
