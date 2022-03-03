@@ -167,7 +167,7 @@ function subscribe({
               O.chain(flow(LzString.decompress, O.fromEither, O.flatten)),
               O.map(
                 Prettier.format({
-                  parser: "typescript",
+                  parser: "js",
                   printWidth: 55,
                   tabWidth: 2,
                   semi: false,
