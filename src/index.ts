@@ -129,20 +129,6 @@ function subscribe({
       O.map(
         flow(
           RA.filterMap((x) => {
-            const asd = matchPI(x)(
-              {
-                url: (x) =>
-                  pipe(
-                    //
-                    ctx.message.text,
-                    string.getSubstring(x),
-                    O.some
-                  ),
-                text_link: ({ url }) => O.some(url),
-              },
-              () => O.some("")
-            );
-            console.log("asd:", x.type, asd);
             switch (x.type) {
               case "url": {
                 return pipe(
@@ -184,6 +170,8 @@ function subscribe({
       ),
       O.chain(RNEA.fromReadonlyArray)
     );
+
+    console.log("codeBlocks: ", codeBlocks);
 
     if (O.isSome(codeBlocks)) {
       const runAndReactOnCodeBlock = pipe(
