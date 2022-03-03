@@ -283,10 +283,12 @@ const program = pipe(
   bootstrap,
   RTE.bindTo("bootstrapResult"),
   RTE.bindW("toImageDeps", () => RTE.ask<ToImageDeps>()),
-  RTE.chainFirstIOK((z) => {
-    console.log("z: ", z);
-    console.log("bootstrapResult: ", z.bootstrapResult);
-    return subscribeR({ ...z.bootstrapResult, ...z.toImageDeps });
+  RTE.chainFirstIOK(({ bootstrapResult, toImageDeps }) => {
+    return subscribeR({
+      template: bootstrapResult.template,
+      bot: bootstrapResult.bot,
+      html: toImageDeps.html,
+    });
   }),
   RTE.match(console.error, (x) => x)
 );
