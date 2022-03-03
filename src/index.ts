@@ -137,12 +137,6 @@ const getImage = pipe(
     pipe(
       deps.rawCode,
       Prism.highlight("js"),
-      E.map((xxx) => {
-        console.log("xxx:", xxx);
-
-        console.log("deps: ", deps);
-        return xxx;
-      }),
       E.map((highlightedCode) =>
         pipe(deps.template, string.replaceAll("{{code}}", highlightedCode))
       ),
@@ -205,26 +199,13 @@ function subscribe({
               )
             )
           ),
-          (xxx) => {
-            console.log("xxx:", xxx);
-            return xxx;
-          },
           RA.compact,
-          RA.map(
-            E.mapLeft((x) => {
-              console.error(x);
-              ErrorWithCause.show(x);
-              return x;
-            })
-          ),
           RA.filter(E.isRight),
           RA.map((x) => x.right)
         )
       ),
       O.chain(RNEA.fromReadonlyArray)
     );
-
-    console.log("codeBlocks: ", codeBlocks);
 
     if (O.isSome(codeBlocks)) {
       const runAndReactOnCodeBlock = pipe(
@@ -282,6 +263,7 @@ const program = pipe(
   RTE.bindTo("bootstrapResult"),
   RTE.bindW("toImageDeps", () => RTE.ask<ToImageDeps>()),
   RTE.chainFirstIOK(({ bootstrapResult, toImageDeps }) => {
+    // toImageDeps ??????? WTF
     return subscribeR({
       template: bootstrapResult.template,
       bot: bootstrapResult.bot,
