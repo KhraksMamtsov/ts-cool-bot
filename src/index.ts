@@ -9,6 +9,7 @@ import * as RTE from "fp-ts/ReaderTaskEither";
 import * as R from "fp-ts/Reader";
 import * as E from "fp-ts/Either";
 import * as IO from "fp-ts/IO";
+import { makeMatchers } from "ts-adt/MakeADT";
 
 import * as FS from "./api/fs/FS";
 import * as Prism from "./api/prism/Prism";
@@ -18,6 +19,8 @@ import * as string from "./libs/string/string";
 import * as LzString from "./api/ls-string/LzString";
 import * as Telegraf from "./api/telegraf/Telegraf";
 import { ErrorWithCause } from "./error/ErrorWithCause";
+
+const [match, matchP, matchI, matchPI] = makeMatchers("type");
 
 const TEParSequenceS = Ap.sequenceS(TE.ApplyPar);
 const RTEParSequenceS = Ap.sequenceS(RTE.ApplyPar);
@@ -57,14 +60,14 @@ const getTemplate = pipe(
 type GetTemplate = typeof getTemplate;
 
 type GetBotDeps = Readonly<{
-  bot: Readonly<{
+  telegraf: Readonly<{
     botToken: Telegraf.TelegrafToken;
     options: Telegraf.TelegrafOptions;
   }>;
 }>;
 
 const getBot = pipe(
-  RTE.asks<GetBotDeps, GetBotDeps["bot"]>((x) => x.bot),
+  RTE.asks<GetBotDeps, GetBotDeps["telegraf"]>((x) => x.telegraf),
   RTE.chainEitherK(({ options, botToken }) => Telegraf.init(options)(botToken))
 );
 
@@ -110,8 +113,7 @@ const getImage = pipe(
 export const from =
   <Args extends ReadonlyArray<unknown>, R>(fn: (...args: Args) => R) =>
   (...args: Args) =>
-  () =>
-    fn(...args);
+    constant(fn(...args));
 
 function subscribe({
   bot,
@@ -126,11 +128,40 @@ function subscribe({
       O.fromNullable,
       O.map(
         flow(
-          RA.filter((x) => x.type === "url"),
-          RA.map((x) =>
-            pipe(
-              ctx.message.text,
-              string.getSubstring(x),
+          RA.filterMap((x) => {
+            const asd = matchPI(x)(
+              {
+                url: (x) =>
+                  pipe(
+                    //
+                    ctx.message.text,
+                    string.getSubstring(x),
+                    O.some
+                  ),
+                text_link: ({ url }) => O.some(url),
+              },
+              () => O.some("")
+            );
+            console.log("asd:", x.type, asd);
+            switch (x.type) {
+              case "url": {
+                return pipe(
+                  //
+                  ctx.message.text,
+                  string.getSubstring(x),
+                  O.some
+                );
+              }
+              case "text_link": {
+                return O.some(x.url);
+              }
+              default: {
+                return O.none;
+              }
+            }
+          }),
+          RA.map(
+            flow(
               O.fromNullableK((x) => x.match(PLAYGROUND_REGEX)),
               O.chain(RA.lookup(2)),
               O.chain(flow(LzString.decompress, O.fromEither, O.flatten)),
@@ -222,7 +253,7 @@ program({
     templatePath: "./src/index.hbs",
     stylesPath: "./src/styles.css",
   },
-  bot: {
+  telegraf: {
     botToken: process.env.BOT_TOKEN!,
     options: {},
   },
