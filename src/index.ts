@@ -49,7 +49,7 @@ async function start() {
         defaultViewport: {
           height: 3000,
           width: 1000,
-          deviceScaleFactor: 2,
+          deviceScaleFactor: 4,
         },
       },
     });
