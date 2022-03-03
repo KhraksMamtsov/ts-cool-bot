@@ -110,7 +110,8 @@ const getImage = pipe(
 export const from =
   <Args extends ReadonlyArray<unknown>, R>(fn: (...args: Args) => R) =>
   (...args: Args) =>
-    constant(fn(...args));
+  () =>
+    fn(...args);
 
 function subscribe({
   bot,
