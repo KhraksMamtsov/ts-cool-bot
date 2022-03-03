@@ -101,7 +101,7 @@ const getImage = pipe(
   RTE.chainTaskEitherK(({ toImage, deps: { rawCode, template } }) =>
     pipe(
       rawCode,
-      Prism.highlight("typescript"),
+      Prism.highlight("js"),
       E.map((highlightedCode) =>
         pipe(template, string.replaceAll("{{code}}", highlightedCode))
       ),
@@ -154,7 +154,7 @@ function subscribe({
               O.chain(flow(LzString.decompress, O.fromEither, O.flatten)),
               O.map(
                 Prettier.format({
-                  parser: "js",
+                  parser: "typescript",
                   printWidth: 55,
                   tabWidth: 2,
                   semi: false,

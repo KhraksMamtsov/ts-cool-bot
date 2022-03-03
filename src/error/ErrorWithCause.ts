@@ -57,14 +57,6 @@ export function create<
   };
 }
 
-function showErrorInfo(error: Error) {
-  return [
-    ["Error", error.name],
-    ["Message", error.message],
-    ["Stack", error.stack ?? "---"],
-  ];
-}
-
 export function show(error: ErrorWithCause | Error, offset = 0) {
   let resultInfo: [string, string][];
   if ("__tag" in error) {
