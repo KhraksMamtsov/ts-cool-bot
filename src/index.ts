@@ -21,6 +21,8 @@ import * as Telegraf from "./api/telegraf/Telegraf";
 import * as ErrorWithCause from "./error/ErrorWithCause";
 import { getErrorOrUnknownError } from "./error/parseError";
 
+console.log("process.versions: ", process.versions);
+
 process.on("uncaughtException", (error, origin) => {
   pipe(
     error,
