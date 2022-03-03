@@ -18,7 +18,7 @@ import * as Prettier from "./api/prettier/Prettier";
 import * as string from "./libs/string/string";
 import * as LzString from "./api/ls-string/LzString";
 import * as Telegraf from "./api/telegraf/Telegraf";
-import { ErrorWithCause } from "./error/ErrorWithCause";
+import * as ErrorWithCause from "./error/ErrorWithCause";
 
 const [match, matchP, matchI, matchPI] = makeMatchers("type");
 
@@ -76,7 +76,8 @@ type GetBot = typeof getBot;
 const bootstrap = pipe(
   RTEParSequenceS<
     GetTemplateEnv & GetBotDeps,
-    ErrorWithCause<FS.ErrorType> | ErrorWithCause<Telegraf.ErrorType>,
+    | ErrorWithCause.ErrorWithCause<FS.ErrorType>
+    | ErrorWithCause.ErrorWithCause<Telegraf.ErrorType>,
     {
       template: GetTemplate;
       bot: GetBot;
@@ -168,6 +169,13 @@ function subscribe({
             return xxx;
           },
           RA.compact,
+          RA.map(
+            E.mapLeft((x) => {
+              console.error(x);
+              ErrorWithCause.show(x);
+              return x;
+            })
+          ),
           RA.filter(E.isRight),
           RA.map((x) => x.right)
         )
