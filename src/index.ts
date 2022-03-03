@@ -83,7 +83,11 @@ const getTemplate = pipe(
       RR.map(FS.readFile),
       TEParSequenceS,
       TE.map(({ templatePath, stylesPath }) =>
-        pipe(templatePath, string.replaceAll("{{style}}", stylesPath))
+        pipe(
+          //
+          templatePath,
+          string.replaceAll("{{style}}", stylesPath)
+        )
       )
     )
   )
@@ -133,6 +137,12 @@ const getImage = pipe(
     pipe(
       rawCode,
       Prism.highlight("js"),
+      E.map((xxx) => {
+        console.log("xxx:", xxx);
+
+        console.log("template: ", template);
+        return xxx;
+      }),
       E.map((highlightedCode) =>
         pipe(template, string.replaceAll("{{code}}", highlightedCode))
       ),
