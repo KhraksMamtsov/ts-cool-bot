@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "A basic typescript app starter for newbies in 2019.",
   "main": "index.js",
+  "volta": {
+    "node": "16.14.0",
+    "yarn": "1.19.2"
+  },
   "scripts": {
     "build": "rimraf ./build && tsc && yarn copy",
     "copy": "copyfiles --flat src/index.hbs src/styles.css build",
@@ -29,6 +33,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@relmify/jest-fp-ts": "^1.1.1",
     "@types/jest": "^27.4.1",
     "@types/node": "^17.0.21",
     "@typescript-eslint/eslint-plugin": "^5.12.1",
@@ -49,8 +54,10 @@
     "@types/prismjs": "^1.26.0",
     "copyfiles": "^2.4.1",
     "eslint-plugin-jest": "^26.1.1",
+    "fp-ts": "^2.11.8",
     "handlebars": "^4.7.7",
     "highlight-ts": "^9.12.1-2",
+    "io-ts": "^2.2.16",
     "jest": "^27.5.1",
     "lz-string": "^1.4.4",
     "node-html-to-image": "^3.2.4",
