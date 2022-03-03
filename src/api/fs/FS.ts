@@ -14,7 +14,7 @@ export function readFile(path: ReadFilePath) {
   return TE.tryCatch(
     async () => await fs.readFile(path, "utf8"),
     EWC.create({
-      type: "ErrorType.READ_FILE",
+      type: ErrorType.READ_FILE,
       context: {
         path,
       },

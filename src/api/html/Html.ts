@@ -13,7 +13,7 @@ export type ToImageOptions = Omit<Options, "html" | "output" | "content">;
 export function toImage(options: ToImageOptions) {
   return function toImageWithOptions(html: string) {
     return TE.tryCatch(
-      async () => await nodeHtmlToImage({ ...options, html }),
+      async () => (await nodeHtmlToImage({ ...options, html })) as Buffer,
       EWC.create({
         type: ErrorType.TO_IMAGE,
         context: { options, html },

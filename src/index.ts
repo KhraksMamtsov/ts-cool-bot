@@ -1,4 +1,4 @@
-import { flow, identity, pipe } from "fp-ts/lib/function";
+import { flow, identity, pipe, constant } from "fp-ts/lib/function";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as RNEA from "fp-ts/ReadonlyNonEmptyArray";
 import * as RR from "fp-ts/ReadonlyRecord";
@@ -8,6 +8,7 @@ import * as O from "fp-ts/Option";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as R from "fp-ts/Reader";
 import * as E from "fp-ts/Either";
+import * as IO from "fp-ts/IO";
 
 import * as FS from "./api/fs/FS";
 import * as Prism from "./api/prism/Prism";
@@ -16,9 +17,10 @@ import * as Prettier from "./api/prettier/Prettier";
 import * as string from "./libs/string/string";
 import * as LzString from "./api/ls-string/LzString";
 import * as Telegraf from "./api/telegraf/Telegraf";
-import { number } from "fp-ts";
+import { ErrorWithCause } from "./error/ErrorWithCause";
 
-const qwe = Ap.sequenceS(TE.ApplyPar);
+const TEParSequenceS = Ap.sequenceS(TE.ApplyPar);
+const RTEParSequenceS = Ap.sequenceS(RTE.ApplyPar);
 
 const CODEBLOCK_REGEX = /```(?:ts|typescript|js|javascript)?\n([\s\S]+)```/;
 
@@ -33,130 +35,133 @@ function isNotNull<T>(x: T): x is Exclude<T, null> {
   return x !== null;
 }
 
-type GetTemplateEnv = { templatePath: string; stylesPath: string };
+type GetTemplateEnv = Readonly<{
+  template: Readonly<{
+    templatePath: string;
+    stylesPath: string;
+  }>;
+}>;
 
 const getTemplate = pipe(
-  RTE.ask<GetTemplateEnv>(),
+  RTE.asks<GetTemplateEnv, GetTemplateEnv["template"]>((x) => x.template),
   RTE.chainTaskEitherK(
     flow(
       RR.map(FS.readFile),
-      qwe,
+      TEParSequenceS,
       TE.map(({ templatePath, stylesPath }) =>
         pipe(templatePath, string.replaceAll("{{style}}", stylesPath))
       )
     )
   )
 );
+type GetTemplate = typeof getTemplate;
 
-const q = pipe(
-  //
-  RTE.ask<{ template: string }>(),
-  RTE.map(({ template }) => qqq(template))
-);
+type GetBotDeps = Readonly<{
+  bot: Readonly<{
+    botToken: Telegraf.TelegrafToken;
+    options: Telegraf.TelegrafOptions;
+  }>;
+}>;
 
-function qqq(template: string) {
-  const w = pipe(
-    RTE.ask<{ rawCode: string }>(),
-    RTE.map(({ rawCode }) =>
-      pipe(
-        rawCode,
-        Prism.highlight("typescript"),
-        E.map((highlightedCode) =>
-          pipe(template, string.replaceAll("{{code}}", highlightedCode))
-        ),
-        TE.fromEither,
-        TE.chainW(
-          Html.toImage({
-            quality: 100,
-            selector: "code",
-            puppeteerArgs: {
-              args: ["--no-sandbox"], // for run puppeteer in Heroku
-              defaultViewport: {
-                height: 3000,
-                width: 1000,
-                deviceScaleFactor: 2,
-              },
-            },
-          })
-        )
-      )
-    )
-  );
-}
-
-type GetBotDeps = {
-  botToken: Telegraf.TelegrafToken;
-  options: Telegraf.TelegrafOptions;
-};
 const getBot = pipe(
-  RTE.ask<GetBotDeps>(),
+  RTE.asks<GetBotDeps, GetBotDeps["bot"]>((x) => x.bot),
   RTE.chainEitherK(({ options, botToken }) => Telegraf.init(options)(botToken))
 );
 
-const asd2 = Ap.sequenceS(RTE.ApplyPar);
+type GetBot = typeof getBot;
 
-const program = pipe(
-  {
-    template: RTE.local<GetTemplateEnv & GetBotDeps, GetTemplateEnv>(identity)(
-      getTemplate
-    ),
-    bot: RTE.local<GetTemplateEnv & GetBotDeps, GetBotDeps>(identity)(getBot),
-  },
-  RR.sequence(RTE.ApplicativePar)
-  // Ap.sequenceS(RTE.ApplyPar)
-  // asd2
-  // RTE.map((x) => x),
-  // (xxx) => xxx
+const bootstrap = pipe(
+  RTEParSequenceS<
+    GetTemplateEnv & GetBotDeps,
+    ErrorWithCause<FS.ErrorType> | ErrorWithCause<Telegraf.ErrorType>,
+    {
+      template: GetTemplate;
+      bot: GetBot;
+    }
+  >({
+    template: getTemplate,
+    bot: getBot,
+  })
 );
 
-const asdasd = program({});
+const getImage = pipe(
+  RTE.ask<{ template: string; rawCode: string }>(),
+  RTE.chainTaskEitherK(({ template, rawCode }) =>
+    pipe(
+      rawCode,
+      Prism.highlight("typescript"),
+      E.map((highlightedCode) =>
+        pipe(template, string.replaceAll("{{code}}", highlightedCode))
+      ),
+      TE.fromEither,
+      TE.chainW(
+        Html.toImage({
+          quality: 100,
+          selector: "code",
+          puppeteerArgs: {
+            args: ["--no-sandbox"], // for run puppeteer in Heroku
+            defaultViewport: {
+              height: 3000,
+              width: 1000,
+              deviceScaleFactor: 2,
+            },
+          },
+        })
+      )
+    )
+  )
+);
 
-function start() {
-  pipe(
-    process.env.BOT_TOKEN!,
-    Telegraf.init({}),
-    E.map((bot) => {
-      bot.on("text", async (ctx, next) => {
-        console.log("text:", ctx.message);
+export const from =
+  <Args extends ReadonlyArray<unknown>, R>(fn: (...args: Args) => R) =>
+  (...args: Args) =>
+    constant(fn(...args));
 
-        const codeBlocks = pipe(
-          ctx.message.entities,
-          O.fromNullable,
-          O.map(
-            flow(
-              RA.filter((x) => x.type === "url"),
-              RA.map((x) =>
-                pipe(
-                  ctx.message.text,
-                  string.getSubstring(x),
-                  O.fromNullableK((x) => x.match(PLAYGROUND_REGEX)),
-                  O.chain(RA.lookup(2)),
-                  O.chain(flow(LzString.decompress, O.fromEither, O.flatten)),
-                  O.map(
-                    Prettier.format({
-                      parser: "typescript",
-                      printWidth: 55,
-                      tabWidth: 2,
-                      semi: false,
-                      bracketSpacing: false,
-                      arrowParens: "avoid",
-                    })
-                  )
-                )
-              ),
-              RA.compact,
-              RA.filter(E.isRight),
-              RA.map((x) => x.right)
+function subscribe({ bot, template }: { bot: Telegraf.Bot; template: string }) {
+  bot.on("text", async (ctx, next) => {
+    console.log("text:", ctx.message);
+
+    const codeBlocks = pipe(
+      ctx.message.entities,
+      O.fromNullable,
+      O.map(
+        flow(
+          RA.filter((x) => x.type === "url"),
+          RA.map((x) =>
+            pipe(
+              ctx.message.text,
+              string.getSubstring(x),
+              O.fromNullableK((x) => x.match(PLAYGROUND_REGEX)),
+              O.chain(RA.lookup(2)),
+              O.chain(flow(LzString.decompress, O.fromEither, O.flatten)),
+              O.map(
+                Prettier.format({
+                  parser: "typescript",
+                  printWidth: 55,
+                  tabWidth: 2,
+                  semi: false,
+                  bracketSpacing: false,
+                  arrowParens: "avoid",
+                })
+              )
             )
           ),
-          O.chain(RNEA.fromReadonlyArray)
-        );
+          RA.compact,
+          RA.filter(E.isRight),
+          RA.map((x) => x.right)
+        )
+      ),
+      O.chain(RNEA.fromReadonlyArray)
+    );
 
-        if (O.isSome(codeBlocks)) {
-          const answer = codeBlocks.value
-            .map((codeBlock) => getImageFromHtml(codeBlock) as Promise<Buffer>)
-            .map(async (x) => {
-              const source = await x;
+    if (O.isSome(codeBlocks)) {
+      const runAndReactOnCodeBlock = pipe(
+        codeBlocks.value,
+        RNEA.map((codeBlock) => getImage({ template, rawCode: codeBlock })),
+        RNEA.map(
+          TE.bimap(
+            from(console.error),
+            from((source) => {
               console.log("typeof source: ", typeof source);
               console.log("source: ", source);
 
@@ -164,27 +169,55 @@ function start() {
 
               ctx.replyWithPhoto(
                 {
-                  source: source, // Buffer
+                  source,
                 },
                 {
                   disable_notification: true,
                   reply_to_message_id: ctx.message.message_id,
                 }
               );
-            });
+            })
+          )
+        )
+      );
 
-          await Promise.all(answer);
-        }
+      (await Promise.all(runAndReactOnCodeBlock.map((run) => run()))).map(
+        flow(
+          E.match(
+            (x) => x(),
+            (x) => x()
+          )
+        )
+      );
+    }
 
-        await next();
-      });
+    await next();
+  });
 
-      bot.launch();
+  bot.launch();
 
-      process.once("SIGINT", () => bot.stop("SIGINT"));
-      process.once("SIGTERM", () => bot.stop("SIGTERM"));
-    })
-  );
+  process.once("SIGINT", () => bot.stop("SIGINT"));
+  process.once("SIGTERM", () => bot.stop("SIGTERM"));
 }
+const subscribeR = pipe(
+  //
+  R.ask<{ bot: Telegraf.Bot; template: string }>(),
+  R.map(from(subscribe))
+);
 
-start();
+const program = pipe(
+  bootstrap,
+  RTE.chainFirstIOK(subscribeR),
+  RTE.match(console.error, (x) => x)
+);
+
+void program({
+  template: {
+    templatePath: "./src/index.hbs",
+    stylesPath: "./src/styles.css",
+  },
+  bot: {
+    botToken: process.env.BOT_TOKEN!,
+    options: {},
+  },
+});
