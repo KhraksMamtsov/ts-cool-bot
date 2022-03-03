@@ -174,6 +174,14 @@ function subscribe({
                   O.some
                 );
               }
+              case "pre": {
+                return pipe(
+                  //
+                  ctx.message.text,
+                  string.getSubstring(x),
+                  O.some
+                );
+              }
               case "text_link": {
                 return O.some(x.url);
               }
