@@ -163,6 +163,10 @@ function subscribe({
               )
             )
           ),
+          (xxx) => {
+            console.log("xxx:", xxx);
+            return xxx;
+          },
           RA.compact,
           RA.filter(E.isRight),
           RA.map((x) => x.right)
@@ -203,12 +207,12 @@ function subscribe({
       );
 
       (await Promise.all(runAndReactOnCodeBlock.map((run) => run()))).map(
-        flow(
-          E.match(
-            (x) => x(),
-            (x) => x()
-          )
+        // flow(
+        E.match(
+          (x) => x(),
+          (x) => x()
         )
+        // )
       );
     }
 
