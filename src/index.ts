@@ -239,8 +239,6 @@ function subscribe({
               console.log("typeof source: ", typeof source);
               console.log("source: ", source);
 
-              ctx.editMessageText("", {});
-
               ctx.replyWithPhoto(
                 {
                   source,
