@@ -41,7 +41,7 @@ process.on("unhandledRejection", (reason, promise) => {
   pipe(
     reason,
     ErrorWithCause.create({
-      type: "unhandledRejection",
+      type: "UnhandledRejection",
       context: {
         promise,
       },
@@ -133,18 +133,18 @@ const getImage = pipe(
   RTE.ask<{ template: string; rawCode: string }>(),
   RTE.bindTo("deps"),
   RTE.bindW("toImage", () => toImageRTE),
-  RTE.chainTaskEitherK(({ toImage, deps: { rawCode, template } }) =>
+  RTE.chainTaskEitherK(({ toImage, deps }) =>
     pipe(
-      rawCode,
+      deps.rawCode,
       Prism.highlight("js"),
       E.map((xxx) => {
         console.log("xxx:", xxx);
 
-        console.log("template: ", template);
+        console.log("deps: ", deps);
         return xxx;
       }),
       E.map((highlightedCode) =>
-        pipe(template, string.replaceAll("{{code}}", highlightedCode))
+        pipe(deps.template, string.replaceAll("{{code}}", highlightedCode))
       ),
       TE.fromEither,
       TE.chainW(toImage)
