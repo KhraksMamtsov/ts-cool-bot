@@ -216,7 +216,7 @@ const program = pipe(
   RTE.match(console.error, (x) => x)
 );
 
-void program({
+program({
   template: {
     templatePath: "./src/index.hbs",
     stylesPath: "./src/styles.css",
@@ -239,4 +239,4 @@ void program({
       },
     },
   },
-});
+})();
