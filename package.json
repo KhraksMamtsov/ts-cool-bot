@@ -63,7 +63,6 @@
     "lz-string": "^1.4.4",
     "node-html-to-image": "^3.2.4",
     "prettier": "^2.5.1",
-    "prismjs": "^1.27.0",
     "shiki-twoslash": "^3.0.2",
     "telegraf": "^4.7.0",
     "ts-adt": "^2.1.2",

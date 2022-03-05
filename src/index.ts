@@ -12,7 +12,6 @@ import * as IO from "fp-ts/IO";
 import { makeMatchers } from "ts-adt/MakeADT";
 
 import * as FS from "./api/fs/FS";
-import * as Prism from "./api/prism/Prism";
 import * as Html from "./api/html/Html";
 import * as Prettier from "./api/prettier/Prettier";
 import * as string from "./libs/string/string";
