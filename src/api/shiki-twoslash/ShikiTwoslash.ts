@@ -4,6 +4,9 @@ import {
   createShikiHighlighter,
 } from "shiki-twoslash";
 import * as TE from "fp-ts/TaskEither";
+import * as ErrorWithCause from "../../error/ErrorWithCause";
+import { flow } from "fp-ts/lib/function";
+import { parseErrorOrUnknownError } from "../../error/parseError";
 
 export enum ErrorType {
   CREATION = "CREATION::ShikiTwoslashErrorType",
@@ -16,7 +19,13 @@ export function getHtml(code: string) {
   return TE.tryCatch(
     async () => {
       const highlighter = await createShikiHighlighter({ theme: "dark-plus" });
-      const twoslash = runTwoSlash(code, "ts", {});
+      const twoslash = runTwoSlash(code, "ts", {
+        defaultOptions: {
+          noErrors: true,
+
+          noErrorValidation: true,
+        },
+      });
       const html = renderCodeToHTML(
         twoslash.code,
         "ts",
@@ -28,6 +37,13 @@ export function getHtml(code: string) {
 
       return html;
     },
-    () => {}
+    flow(
+      ErrorWithCause.create({
+        type: ErrorType.CREATION,
+        context: {
+          code,
+        },
+      })(parseErrorOrUnknownError)
+    )
   );
 }
