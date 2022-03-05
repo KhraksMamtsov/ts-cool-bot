@@ -305,8 +305,8 @@ program({
       puppeteerArgs: {
         args: ["--no-sandbox"], // for run puppeteer in Heroku
         defaultViewport: {
-          height: 1200,
-          width: 1000,
+          height: 100,
+          width: 400,
           deviceScaleFactor: 2,
         },
       },
