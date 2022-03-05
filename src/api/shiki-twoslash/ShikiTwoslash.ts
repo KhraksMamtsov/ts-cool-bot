@@ -7,6 +7,7 @@ import * as TE from "fp-ts/TaskEither";
 import * as ErrorWithCause from "../../error/ErrorWithCause";
 import { flow } from "fp-ts/lib/function";
 import { parseErrorOrUnknownError } from "../../error/parseError";
+import { writeFileSync } from "fs";
 
 export enum ErrorType {
   CREATION = "CREATION::ShikiTwoslashErrorType",
@@ -18,21 +19,27 @@ export enum ErrorType {
 export function getHtml(code: string) {
   return TE.tryCatch(
     async () => {
-      const highlighter = await createShikiHighlighter({ theme: "monokai" });
+      const highlighter = await createShikiHighlighter({
+        theme: "material-default",
+      });
       const twoslash = runTwoSlash(code, "ts", {
         defaultOptions: {
-          noErrors: true,
+          //   noErrors: true,
           noErrorValidation: true,
         },
       });
+
+      //   const asd: string = 123;
       const html = renderCodeToHTML(
         twoslash.code,
         "ts",
-        ["twoslash"],
-        { themeName: "monokai" },
+        { twoslash: true },
+        { themeName: "material-default" },
         highlighter,
         twoslash
       );
+
+      writeFileSync("output.html", html, "utf8");
 
       return html;
     },

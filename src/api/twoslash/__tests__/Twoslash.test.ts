@@ -7,14 +7,13 @@ describe("Twoslash", () => {
   describe("twoslash", () => {
     test("twoslash", () => {
       const testCode =
-        "const ASD = 3; QWE;\n" + //
-        "//             ^?";
+        "const ASD = 3; [ASD];\n" + //
+        "//    ^?        ^?";
       const result = pipe(
         testCode,
         Twoslash.create({
           defaultOptions: {
             noErrors: true,
-            // showEmit: true,
             noErrorValidation: true,
           },
         }),
