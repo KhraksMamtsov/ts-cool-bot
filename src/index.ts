@@ -301,13 +301,14 @@ program({
   html: {
     options: {
       quality: 100,
+      type: "png",
       selector: ".shiki",
       puppeteerArgs: {
         args: ["--no-sandbox"], // for run puppeteer in Heroku
         defaultViewport: {
           height: 100,
           width: 400,
-          deviceScaleFactor: 2,
+          deviceScaleFactor: 3,
         },
       },
     },
