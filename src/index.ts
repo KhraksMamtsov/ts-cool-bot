@@ -301,7 +301,7 @@ program({
   html: {
     options: {
       quality: 100,
-      selector: "#shoot-target",
+      selector: ".shiki",
       puppeteerArgs: {
         args: ["--no-sandbox"], // for run puppeteer in Heroku
         defaultViewport: {
