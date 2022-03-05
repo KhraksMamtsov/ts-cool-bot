@@ -1,7 +1,7 @@
 import * as TE from "fp-ts/TaskEither";
 import { promises as fs } from "fs";
 import * as EWC from "../../error/ErrorWithCause";
-import { getErrorOrUnknownError } from "../../error/parseError";
+import { parseErrorOrUnknownError } from "../../error/parseError";
 
 type ReadFileParameters = Parameters<typeof fs.readFile>;
 type ReadFilePath = ReadFileParameters[0];
@@ -18,6 +18,6 @@ export function readFile(path: ReadFilePath) {
       context: {
         path,
       },
-    })(getErrorOrUnknownError)
+    })(parseErrorOrUnknownError)
   );
 }

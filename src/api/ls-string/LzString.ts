@@ -3,7 +3,7 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/lib/function";
 import * as EWC from "../../error/ErrorWithCause";
-import { getErrorOrUnknownError } from "../../error/parseError";
+import { parseErrorOrUnknownError } from "../../error/parseError";
 
 export enum ErrorType {
   DECOMPRESS = "DECOMPRESS:LzStringErrorType",
@@ -18,7 +18,7 @@ export function decompress(compressed: string) {
         context: {
           compressed,
         },
-      })(getErrorOrUnknownError)
+      })(parseErrorOrUnknownError)
     ),
     E.map(O.fromNullable)
   );

@@ -19,7 +19,8 @@ import * as string from "./libs/string/string";
 import * as LzString from "./api/ls-string/LzString";
 import * as Telegraf from "./api/telegraf/Telegraf";
 import * as ErrorWithCause from "./error/ErrorWithCause";
-import { getErrorOrUnknownError } from "./error/parseError";
+import * as ShikiTwoslash from "./api/shiki-twoslash/ShikiTwoslash";
+import { parseErrorOrUnknownError } from "./error/parseError";
 
 console.log("process.versions: ", process.versions);
 
@@ -31,7 +32,7 @@ process.on("uncaughtException", (error, origin) => {
       context: {
         origin,
       },
-    })(getErrorOrUnknownError),
+    })(parseErrorOrUnknownError),
     ErrorWithCause.show,
     console.log
   );
@@ -45,7 +46,7 @@ process.on("unhandledRejection", (reason, promise) => {
       context: {
         promise,
       },
-    })(getErrorOrUnknownError),
+    })(parseErrorOrUnknownError),
     ErrorWithCause.show,
     console.log
   );
@@ -136,20 +137,27 @@ const getImage = pipe(
   RTE.chainTaskEitherK(({ toImage, deps }) =>
     pipe(
       deps.rawCode,
-      Prism.highlight("js"),
-      E.map((highlightedCode) =>
+      // Prism.highlight("js"),
+      ShikiTwoslash.getHtml,
+      TE.map((highlightedCode) =>
         pipe(deps.template, string.replaceAll("{{code}}", highlightedCode))
       ),
-      TE.fromEither,
+      // TE.fromEither,
       TE.chainW(toImage)
     )
   )
 );
 
+// IO
 export const from =
   <Args extends ReadonlyArray<unknown>, R>(fn: (...args: Args) => R) =>
   (...args: Args) =>
     constant(fn(...args));
+// !IO
+
+// codeSource
+// enum CodeSourceType
+// !codeSource
 
 function subscribe({
   bot,

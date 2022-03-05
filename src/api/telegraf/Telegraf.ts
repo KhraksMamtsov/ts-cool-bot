@@ -1,7 +1,7 @@
 import { Context, Telegraf } from "telegraf";
 import * as E from "fp-ts/Either";
 import * as ErrorWithCause from "../../error/ErrorWithCause";
-import { getErrorOrUnknownError } from "../../error/parseError";
+import { parseErrorOrUnknownError } from "../../error/parseError";
 import { Update } from "telegraf/typings/core/types/typegram";
 
 type TelegrafCtorParams = ConstructorParameters<typeof Telegraf>;
@@ -20,7 +20,7 @@ export function init(options: TelegrafOptions) {
       ErrorWithCause.create({
         type: ErrorType.INIT,
         context: { options, botToken },
-      })(getErrorOrUnknownError)
+      })(parseErrorOrUnknownError)
     );
   };
 }

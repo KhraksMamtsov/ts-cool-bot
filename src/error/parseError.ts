@@ -1,39 +1,20 @@
+import { flow, identity } from "fp-ts/lib/function";
 import { UnknownErrorWithCause } from "./UnknownErrorWithCause";
 
-export function parseError<TErrorResult, TUnknownResult>(
-  x: unknown,
-  onError: (x: Error) => TErrorResult,
-  onUnknown: (x: unknown) => TUnknownResult
-): TErrorResult | TUnknownResult {
-  if (x instanceof Error) {
-    return onError(x);
-  }
-  return onUnknown(x);
+export function parse<TUnknownResult>(
+  parseUnknown: (x: unknown) => TUnknownResult
+) {
+  return function parseWithUnknown<TErrorResult>(
+    parseError: (x: Error) => TErrorResult
+  ) {
+    return function parseWithUnknownAndError(x: unknown) {
+      if (x instanceof Error) {
+        return parseError(x);
+      }
+      return parseUnknown(x);
+    };
+  };
 }
 
-export function parseErrorWithUnknown<TErrorResult>(
-  x: unknown,
-  onError: (x: Error | UnknownErrorWithCause) => TErrorResult
-): TErrorResult;
-export function parseErrorWithUnknown<TErrorResult, TUnknownResult>(
-  x: unknown,
-  onError: (x: Error) => TErrorResult,
-  onUnknownError: (x: UnknownErrorWithCause) => TUnknownResult
-): TErrorResult | TUnknownResult;
-export function parseErrorWithUnknown<TErrorResult, TUnknownResult>(
-  x: unknown,
-  onError: (x: Error) => TErrorResult,
-  onUnknownError?: (x: UnknownErrorWithCause) => TUnknownResult
-): TErrorResult | TUnknownResult {
-  return parseError(
-    //
-    x,
-    onError,
-    (unknown) =>
-      (onUnknownError ?? onError)(UnknownErrorWithCause.from(unknown))
-  );
-}
-
-export function getErrorOrUnknownError(x: unknown) {
-  return parseErrorWithUnknown(x, (unknown) => unknown);
-}
+export const parseWithUnknown = parse(UnknownErrorWithCause.from);
+export const parseErrorOrUnknownError = parseWithUnknown(identity);

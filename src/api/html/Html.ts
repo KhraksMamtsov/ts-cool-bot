@@ -2,7 +2,7 @@ import nodeHtmlToImage from "node-html-to-image";
 import { Options } from "node-html-to-image/dist/types";
 import * as TE from "fp-ts/TaskEither";
 import * as EWC from "../../error/ErrorWithCause";
-import { getErrorOrUnknownError } from "../../error/parseError";
+import { parseErrorOrUnknownError } from "../../error/parseError";
 
 export enum ErrorType {
   TO_IMAGE = "TO_IMAGE::HtmlErrorType",
@@ -17,7 +17,7 @@ export function toImage(options: ToImageOptions) {
       EWC.create({
         type: ErrorType.TO_IMAGE,
         context: { options, html },
-      })(getErrorOrUnknownError)
+      })(parseErrorOrUnknownError)
     );
   };
 }

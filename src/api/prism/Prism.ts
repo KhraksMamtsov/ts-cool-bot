@@ -1,7 +1,7 @@
 import prism from "prismjs";
 import * as E from "fp-ts/Either";
 import * as EWC from "../../error/ErrorWithCause";
-import { getErrorOrUnknownError } from "../../error/parseError";
+import { parseErrorOrUnknownError } from "../../error/parseError";
 
 export enum ErrorType {
   HIGHLIGHT = "HIGHLIGHT::PrismErrorType",
@@ -17,7 +17,7 @@ export function highlight(language: string) {
           language,
           html,
         },
-      })(getErrorOrUnknownError)
+      })(parseErrorOrUnknownError)
     );
   };
 }
