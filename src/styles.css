@@ -7,3 +7,7 @@ body {
 pre {
   margin: 0;
 }
+
+.shiki {
+  padding: 10px;
+}
