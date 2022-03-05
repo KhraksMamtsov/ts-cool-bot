@@ -18,11 +18,10 @@ export enum ErrorType {
 export function getHtml(code: string) {
   return TE.tryCatch(
     async () => {
-      const highlighter = await createShikiHighlighter({ theme: "dark-plus" });
+      const highlighter = await createShikiHighlighter({ theme: "monokai" });
       const twoslash = runTwoSlash(code, "ts", {
         defaultOptions: {
           noErrors: true,
-
           noErrorValidation: true,
         },
       });
@@ -30,7 +29,7 @@ export function getHtml(code: string) {
         twoslash.code,
         "ts",
         ["twoslash"],
-        { themeName: "dark-plus" },
+        { themeName: "monokai" },
         highlighter,
         twoslash
       );
