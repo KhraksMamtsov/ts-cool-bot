@@ -25,6 +25,7 @@ export function getHtml(code: string) {
       const twoslash = runTwoSlash(code, "ts", {
         defaultOptions: {
           //   noErrors: true,
+          noStaticSemanticInfo: true,
           noErrorValidation: true,
         },
       });

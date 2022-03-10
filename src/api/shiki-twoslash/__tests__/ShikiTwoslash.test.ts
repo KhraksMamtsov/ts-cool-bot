@@ -11,24 +11,20 @@ import { getHtml } from "../ShikiTwoslash";
 // `;
 
 const testCode = `
-function longest<T extends { length: number }>(a: T, b: T) {
-  if (a.length >= b.length) {
-    return a;
-  } else {
-    return b;
-  }
+interface FormFields {
+  name: string;
 }
-// longerArray is of type 'number[]'
-const longerArray = longest([1, 2], [1, 2, 3]);
-// longerString is of type 'string'
-const longerString = longest("alice", "bob");
-// Error! Numbers don't have a 'length' property
-const notOK = longest(10, 100);
-const hello: boolean = longest("alice", "bob");
-console.log(hello);
-// ^?
-`;
-describe("ShikiTwoslash", () => {
+
+class Register {
+  form: FormFields = {
+    name: 1,
+  };
+
+  onChange = (value: string, field: string) => {
+    this.form[field] = value;
+  };
+}`;
+describe.skip("ShikiTwoslash", () => {
   describe("twoslash", () => {
     test("twoslash", async () => {
       //   const testCode =
