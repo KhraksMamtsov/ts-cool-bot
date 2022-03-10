@@ -267,56 +267,43 @@ function subscribe({
         T.map(
           flow(RA.separate, ({ left, right }) => {
             pipe(left, RA.map(console.error));
-            ctx.replyWithMediaGroup(
-              pipe(
-                right,
-                RA.map((source) => ({
-                  type: "photo",
-                  media: { source },
-                }))
-              ),
-              {
-                disable_notification: true,
-                reply_to_message_id: ctx.message.message_id,
-              }
+
+            pipe(
+              right,
+              RNEA.fromReadonlyArray,
+              O.match(
+                () => {},
+                (nonEmptyBuffers) => {
+                  if (right.length >= 2) {
+                    ctx.replyWithMediaGroup(
+                      pipe(
+                        nonEmptyBuffers,
+                        RNEA.map((source) => ({
+                          type: "photo",
+                          media: { source },
+                        }))
+                      ),
+                      {
+                        disable_notification: true,
+                        reply_to_message_id: ctx.message.message_id,
+                      }
+                    );
+                  } else {
+                    ctx.replyWithPhoto(
+                      {
+                        source: nonEmptyBuffers[0],
+                      },
+                      {
+                        disable_notification: true,
+                        reply_to_message_id: ctx.message.message_id,
+                      }
+                    );
+                  }
+                }
+              )
             );
           })
         )
-        // (xxx) => xxx,
-        // // RNEA.map(T.sequenceArray)
-        // RNEA.map(
-        //   TE.bimap(
-        //     from(console.error),
-        //     from((source) => {
-        //       console.log("typeof source: ", typeof source);
-        //       console.log("source: ", source);
-
-        //       ctx.replyWithMediaGroup(
-        //         [
-        //           {
-        //             type: "photo",
-        //             media: {
-        //               source,
-        //             },
-        //           },
-        //         ],
-        //         {
-        //           disable_notification: true,
-        //           reply_to_message_id: ctx.message.message_id,
-        //         }
-        //       );
-        //       ctx.replyWithPhoto(
-        //         {
-        //           source: source,
-        //         },
-        //         {
-        //           disable_notification: true,
-        //           reply_to_message_id: ctx.message.message_id,
-        //         }
-        //       );
-        //     })
-        //   )
-        // )
       );
 
       const asd = await runAndReactOnCodeBlock();
