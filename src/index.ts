@@ -8,6 +8,7 @@ import * as O from "fp-ts/Option";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as R from "fp-ts/Reader";
 import * as E from "fp-ts/Either";
+import * as T from "fp-ts/Task";
 import * as IO from "fp-ts/IO";
 import { makeMatchers } from "ts-adt/MakeADT";
 
@@ -262,35 +263,63 @@ function subscribe({
         RNEA.map((codeBlock) =>
           getImage({ html, template, rawCode: codeBlock })
         ),
-        RNEA.map(
-          TE.bimap(
-            from(console.error),
-            from((source) => {
-              console.log("typeof source: ", typeof source);
-              console.log("source: ", source);
-
-              ctx.replyWithPhoto(
-                {
-                  source,
-                },
-                {
-                  disable_notification: true,
-                  reply_to_message_id: ctx.message.message_id,
-                }
-              );
-            })
-          )
+        RNEA.sequence(T.ApplicativePar),
+        T.map(
+          flow(RA.separate, ({ left, right }) => {
+            pipe(left, RA.map(console.error));
+            ctx.replyWithMediaGroup(
+              pipe(
+                right,
+                RA.map((source) => ({
+                  type: "photo",
+                  media: { source },
+                }))
+              ),
+              {
+                disable_notification: true,
+                reply_to_message_id: ctx.message.message_id,
+              }
+            );
+          })
         )
-      );
+        // (xxx) => xxx,
+        // // RNEA.map(T.sequenceArray)
+        // RNEA.map(
+        //   TE.bimap(
+        //     from(console.error),
+        //     from((source) => {
+        //       console.log("typeof source: ", typeof source);
+        //       console.log("source: ", source);
 
-      (await Promise.all(runAndReactOnCodeBlock.map((run) => run()))).map(
-        // flow(
-        E.match(
-          (x) => x(),
-          (x) => x()
-        )
+        //       ctx.replyWithMediaGroup(
+        //         [
+        //           {
+        //             type: "photo",
+        //             media: {
+        //               source,
+        //             },
+        //           },
+        //         ],
+        //         {
+        //           disable_notification: true,
+        //           reply_to_message_id: ctx.message.message_id,
+        //         }
+        //       );
+        //       ctx.replyWithPhoto(
+        //         {
+        //           source: source,
+        //         },
+        //         {
+        //           disable_notification: true,
+        //           reply_to_message_id: ctx.message.message_id,
+        //         }
+        //       );
+        //     })
+        //   )
         // )
       );
+
+      const asd = await runAndReactOnCodeBlock();
     }
 
     await next();
