@@ -1,4 +1,4 @@
-import { flow, identity, pipe, constant } from "fp-ts/lib/function";
+import { flow, identity, pipe, constant, hole } from "fp-ts/lib/function";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as RNEA from "fp-ts/ReadonlyNonEmptyArray";
 import * as RR from "fp-ts/ReadonlyRecord";
@@ -20,6 +20,7 @@ import * as Telegraf from "./api/telegraf/Telegraf";
 import * as ErrorWithCause from "./error/ErrorWithCause";
 import * as ShikiTwoslash from "./api/shiki-twoslash/ShikiTwoslash";
 import { parseErrorOrUnknownError } from "./error/parseError";
+import { MessageEntity } from "telegraf/typings/core/types/typegram";
 
 console.log("process.versions: ", process.versions);
 
@@ -158,6 +159,30 @@ export const from =
 // enum CodeSourceType
 // !codeSource
 
+enum CodeSourceType {
+  RAW = "RAW::CodeSourceType",
+  COMPRESSED_URL = "COMPRESSED_URL::CodeSourceType",
+}
+
+function fromRaw(rawCode: string) {
+  return {
+    type: CodeSourceType.RAW,
+    rawCode,
+  } as const;
+}
+
+type RawCodeSource = ReturnType<typeof fromRaw>;
+function fromCompressedUrl(compressedUrl: string) {
+  return {
+    type: CodeSourceType.COMPRESSED_URL,
+    compressedUrl,
+  } as const;
+}
+
+type CompressedUrlCodeSource = ReturnType<typeof fromCompressedUrl>;
+
+type CodeSource = RawCodeSource | CompressedUrlCodeSource;
+
 function subscribe({
   bot,
   template,
@@ -171,13 +196,14 @@ function subscribe({
       O.fromNullable,
       O.map(
         flow(
-          RA.filterMap((x) => {
+          RA.filterMap<MessageEntity, CodeSource>((x) => {
             switch (x.type) {
               case "url": {
                 return pipe(
                   //
                   ctx.message.text,
                   string.getSubstring(x),
+                  fromCompressedUrl,
                   O.some
                 );
               }
@@ -186,11 +212,12 @@ function subscribe({
                   //
                   ctx.message.text,
                   string.getSubstring(x),
+                  fromRaw,
                   O.some
                 );
               }
               case "text_link": {
-                return O.some(x.url);
+                return pipe(x.url, fromCompressedUrl, O.some);
               }
               default: {
                 return O.none;
@@ -199,9 +226,16 @@ function subscribe({
           }),
           RA.map(
             flow(
-              O.fromNullableK((x) => x.match(PLAYGROUND_REGEX)),
-              O.chain(RA.lookup(2)),
-              O.chain(flow(LzString.decompress, O.fromEither, O.flatten)),
+              match({
+                [CodeSourceType.RAW]: (x) => O.some(x.rawCode),
+                [CodeSourceType.COMPRESSED_URL]: (x) =>
+                  pipe(
+                    x.compressedUrl,
+                    O.fromNullableK((x) => x.match(PLAYGROUND_REGEX)),
+                    O.chain(RA.lookup(2)),
+                    O.chain(flow(LzString.decompress, O.fromEither, O.flatten))
+                  ),
+              }),
               O.map(
                 Prettier.format({
                   parser: "typescript",
