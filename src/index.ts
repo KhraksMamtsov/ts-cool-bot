@@ -1,4 +1,11 @@
-import { flow, identity, pipe, constant, hole } from "fp-ts/lib/function";
+import {
+  flow,
+  identity,
+  pipe,
+  constant,
+  hole,
+  constUndefined,
+} from "fp-ts/lib/function";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as RNEA from "fp-ts/ReadonlyNonEmptyArray";
 import * as RR from "fp-ts/ReadonlyRecord";
@@ -60,6 +67,7 @@ const RTEParSequenceS = Ap.sequenceS(RTE.ApplyPar);
 
 const CODEBLOCK_REGEX = /```(?:ts|typescript|js|javascript)?\n([\s\S]+)```/;
 
+const PLAYGROUND_BASE = "https://www.typescriptlang.org/play/#code/";
 export const PLAYGROUND_REGEX =
   /https?:\/\/(?:www\.)?(?:typescriptlang|staging-typescript)\.org\/(?:play|dev\/bug-workbench)(?:\/index\.html)?\/?(\??(?:\w+=[^\s#&]*)?(?:\&\w+=[^\s#&]*)*)#code\/([\w\-%+_]+={0,4})/;
 
@@ -262,8 +270,19 @@ function subscribe({
     if (O.isSome(codeBlocks)) {
       const runAndReactOnCodeBlock = pipe(
         codeBlocks.value,
-        RNEA.map((codeBlock) =>
-          getImage({ html, template, rawCode: codeBlock })
+        RNEA.map((x) =>
+          pipe(
+            TE.Do,
+            TE.bind("codeBlock", constant(TE.of(x))),
+            TE.bind("image", ({ codeBlock }) =>
+              getImage({
+                //
+                html,
+                template,
+                rawCode: codeBlock,
+              })
+            )
+          )
         ),
         RNEA.sequence(T.ApplicativePar),
         T.map(
@@ -282,7 +301,20 @@ function subscribe({
                         nonEmptyBuffers,
                         RNEA.map((source) => ({
                           type: "photo",
-                          media: { source },
+                          media: {
+                            source: source.image,
+                            parse_mode: "MarkdownV2",
+                            caption: pipe(
+                              source.codeBlock,
+                              LzString.compress,
+                              E.getOrElse(constant(O.zero())),
+                              O.map(
+                                (x) =>
+                                  `[View in Playground](${PLAYGROUND_BASE + x})`
+                              ),
+                              O.toUndefined
+                            ),
+                          },
                         }))
                       ),
                       {
@@ -293,9 +325,20 @@ function subscribe({
                   } else {
                     ctx.replyWithPhoto(
                       {
-                        source: nonEmptyBuffers[0],
+                        source: nonEmptyBuffers[0].image,
                       },
                       {
+                        parse_mode: "MarkdownV2",
+                        caption: pipe(
+                          nonEmptyBuffers[0].codeBlock,
+                          LzString.compress,
+                          E.getOrElse(constant(O.zero())),
+                          O.map(
+                            (x) =>
+                              `[View in Playground](${PLAYGROUND_BASE + x})`
+                          ),
+                          O.toUndefined
+                        ),
                         disable_notification: true,
                         reply_to_message_id: ctx.message.message_id,
                       }
