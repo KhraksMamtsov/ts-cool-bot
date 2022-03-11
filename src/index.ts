@@ -312,7 +312,7 @@ function subscribe({
                                 (x) =>
                                   `[View in Playground](${PLAYGROUND_BASE + x})`
                               ),
-                              O.toUndefined
+                              O.getOrElse(() => "!!!")
                             ),
                           },
                         }))
