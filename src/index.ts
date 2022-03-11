@@ -237,21 +237,23 @@ function subscribe({
                     O.chain(flow(LzString.decompress, O.fromEither, O.flatten))
                   ),
               }),
-              O.map(
-                Prettier.format({
-                  parser: "typescript",
-                  printWidth: 55,
-                  tabWidth: 2,
-                  semi: false,
-                  bracketSpacing: false,
-                  arrowParens: "avoid",
-                })
+              O.map((x) =>
+                pipe(
+                  x,
+                  Prettier.format({
+                    parser: "typescript",
+                    printWidth: 55,
+                    tabWidth: 2,
+                    semi: false,
+                    bracketSpacing: false,
+                    arrowParens: "avoid",
+                  }),
+                  E.getOrElse(constant(x))
+                )
               )
             )
           ),
-          RA.compact,
-          RA.filter(E.isRight),
-          RA.map((x) => x.right)
+          RA.compact
         )
       ),
       O.chain(RNEA.fromReadonlyArray)
