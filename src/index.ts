@@ -12,15 +12,17 @@ import {
 } from "effect";
 import * as CS from "./entities/code-source/CodeSource";
 import * as TS from "./api/twoslash/TwoSlashService";
-import { Payload } from "./api/telegraf/Telegraf";
 import { compress } from "./api/ls-string/LzString";
+import { TelegrafBot, TelegrafBotPayload } from "./api/telegraf/TelegrafBot";
+import * as TO from "./api/telegraf/TelegrafOptions";
+import * as TSO from "./api/twoslash/TwoSlashOptions";
 
 const PLAYGROUND_BASE = "https://www.typescriptlang.org/play/#code/";
 
 const TelegrafLive = pipe(
   Telegraf.TelegrafLive,
   Layer.use(
-    Telegraf.options({
+    TO.options({
       options: {},
       botToken: "5178452921:AAFJ_70Dd6P4mWhcJGCKRzZpAUIJ1lm2ins",
     }),
@@ -30,7 +32,7 @@ const TelegrafLive = pipe(
 const TwoSlashLive = pipe(
   TS.TwoSlashLive,
   Layer.use(
-    TS.options({
+    TSO.options({
       defaultOptions: {
         noStaticSemanticInfo: true,
         noErrorValidation: true,
@@ -38,7 +40,7 @@ const TwoSlashLive = pipe(
     }),
   ),
 );
-const handle = (bot: Telegraf.Bot) =>
+const handle = (bot: TelegrafBot) =>
   pipe(
     Stream.merge(bot.text$, bot.editedText$),
     Stream.run(
@@ -85,7 +87,7 @@ const handle = (bot: Telegraf.Bot) =>
                   RA.join("\n"),
                 );
 
-                if (context._tag === Payload.TEXT) {
+                if (context._tag === TelegrafBotPayload.TEXT) {
                   const answerMessage = yield* _(
                     context.replyWithMarkdown(answer, {
                       disable_notification: true,

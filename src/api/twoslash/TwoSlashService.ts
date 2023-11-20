@@ -1,25 +1,15 @@
 import * as _Twoslash from "@typescript/twoslash";
 import {
-  ReadonlyArray as RA,
-  Either as E,
   Context,
-  String as S,
-  Effect,
-  pipe,
-  Layer,
   Data,
+  Effect,
+  Either as E,
+  Layer,
+  pipe,
+  ReadonlyArray as RA,
+  String as S,
 } from "effect";
-export interface TwoSlashOptions {
-  readonly _: unique symbol;
-}
-export interface TwoSlashOptionsService extends _Twoslash.TwoSlashOptions {}
-export const TwoSlashOptions = Context.Tag<
-  TwoSlashOptions,
-  TwoSlashOptionsService
->();
-
-export const options = (options: TwoSlashOptionsService) =>
-  Layer.succeed(TwoSlashOptions, TwoSlashOptions.of(options));
+import * as TSO from "./TwoSlashOptions";
 
 function render(result: _Twoslash.TwoSlashReturn) {
   const lines = result.code.split("\n");
@@ -85,7 +75,7 @@ function render(result: _Twoslash.TwoSlashReturn) {
 }
 
 const makeLive = pipe(
-  TwoSlashOptions,
+  TSO.TwoSlashOptions,
   Effect.map((options) => {
     const create = (code: string) =>
       pipe(
@@ -108,7 +98,9 @@ interface TwoSlash {
 }
 export interface TwoSlashService
   extends Effect.Effect.Success<typeof makeLive> {}
-export const TwoSlash = Context.Tag<TwoSlash, TwoSlashService>();
+export const TwoSlash = Context.Tag<TwoSlash, TwoSlashService>(
+  "@twoslash/TwoSlash",
+);
 export const TwoSlashLive = Layer.effect(TwoSlash, makeLive);
 
 export enum ErrorType {
@@ -119,6 +111,6 @@ export class TwoslashCreationError extends Data.TaggedError(
   ErrorType.CREATION,
 )<{
   readonly case: unknown;
-  readonly options: TwoSlashOptionsService;
+  readonly options: TSO.TwoSlashOptionsService;
   readonly code: string;
 }> {}
