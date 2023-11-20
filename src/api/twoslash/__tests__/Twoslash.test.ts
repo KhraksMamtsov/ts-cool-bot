@@ -1,7 +1,6 @@
-import { pipe } from "fp-ts/lib/function";
-import * as E from "fp-ts/Either";
+import { pipe, Effect, Exit } from "effect";
 import * as ErrorWithCause from "../../../error/ErrorWithCause";
-import * as Twoslash from "../Twoslash";
+import * as Twoslash from "../TwoSlashService";
 
 describe("Twoslash", () => {
   describe("twoslash", () => {
@@ -9,20 +8,25 @@ describe("Twoslash", () => {
       const testCode =
         "const ASD = 3; [ASD];\n" + //
         "//    ^?        ^?";
+
       const result = pipe(
         testCode,
-        Twoslash.create({
+        Twoslash.create,
+        Effect.provideService(Twoslash.TwoSlash, {
           defaultOptions: {
             noErrors: true,
             noErrorValidation: true,
           },
         }),
-        E.mapLeft((error) => {
-          return ErrorWithCause.show(error.cause);
-        })
+        Effect.runSyncExit,
+        Exit.mapError((x) => ErrorWithCause.show(x.cause)),
       );
 
-      expect(result).toEqualRight(2);
+      if (Exit.isSuccess(result)) {
+        expect(result.value).toBe(2);
+      } else {
+        expect(false).toBe(true);
+      }
     });
   });
 });

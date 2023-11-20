@@ -1,25 +1,44 @@
-import * as E from "fp-ts/Either";
-import { format as _format, Options as _Options } from "prettier";
-import * as EWC from "../../error/ErrorWithCause";
-import { parseErrorOrUnknownError } from "../../error/parseError";
+import * as _Prettier from "prettier";
+import { Effect, Context, Layer, pipe, Data } from "effect";
+
+interface PrettierOptionsTag {
+  readonly _: unique symbol;
+}
+export interface PrettierOptions extends _Prettier.Options {}
+export const PrettierOptions = Context.Tag<PrettierOptionsTag, PrettierOptions>(
+  "@prettier/PrettierOptions",
+);
+
+interface Prettier {
+  readonly _: unique symbol;
+}
+export const Prettier = Context.Tag<Prettier, PrettierService>(
+  "@prettier/Prettier",
+);
+export interface PrettierService
+  extends Effect.Effect.Success<typeof makeLive> {}
 
 export enum ErrorType {
   FORMAT = "FORMAT::PrettierErrorType",
 }
 
-export type Options = _Options;
+class PrettierFormatError extends Data.TaggedError(ErrorType.FORMAT)<{
+  readonly source: string;
+  readonly options: PrettierOptions;
+}> {}
 
-export function format(options: Options) {
-  return function formatWithOptions(source: string) {
-    return E.tryCatch(
-      () => _format(source, options),
-      EWC.create({
-        type: ErrorType.FORMAT,
-        context: {
-          options,
-          source,
-        },
-      })(parseErrorOrUnknownError)
-    );
-  };
-}
+const makeLive = pipe(
+  PrettierOptions,
+  Effect.map((options) => {
+    const format = (source: string) =>
+      Effect.tryPromise({
+        try: () => _Prettier.format(source, options),
+        catch: () => new PrettierFormatError({ options, source }),
+      });
+
+    return {
+      format,
+    } as const;
+  }),
+);
+export const PrettierLive = Layer.effect(Prettier, makeLive);

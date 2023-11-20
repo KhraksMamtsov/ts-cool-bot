@@ -1,11 +1,13 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "module": "commonjs",
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
     "lib": [
       "es2021"
     ],
     "allowJs": true,
+    "downlevelIteration": true,
     "outDir": "build",
     "rootDir": "src",
     "strict": true,
@@ -25,7 +27,7 @@
     ],
     "typeRoots": [
       "./node_modules/@types"
-    ],
+    ]
   },
   "include": [
     "src/**/*"
