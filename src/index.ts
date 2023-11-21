@@ -97,8 +97,12 @@ const handle = (bot: TelegrafBot) =>
                           linkShortenerService.shortenLink({ url }),
                           Effect.timeout("3 seconds"),
                           Effect.flatMap(O.map((x) => x.shortened)),
-                          Effect.orElseSucceed(() => url),
-                          Effect.map((x) => `[PLAYGROUND](${x})`),
+                          Effect.map(
+                            (x) =>
+                              `[PLAYGROUND](${url}) \\+ [PLAYGROUND\\_SHORT](${x})`,
+                          ),
+                          Effect.orElseSucceed(() => `[PLAYGROUND](${url})`),
+                          (x) => x,
                         ),
                       ),
                       Effect.option,
