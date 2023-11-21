@@ -65,14 +65,21 @@ const fromText = (text: string) =>
         O.some,
       ),
     ),
-    Match.discriminator(discriminator)("pre", (pre) =>
-      pipe(
+    Match.discriminator(discriminator)("pre", (pre) => {
+      if (
+        ![undefined, "ts", "typescript", "js", "javascript"].includes(
+          pre.language,
+        )
+      ) {
+        return O.none();
+      }
+      return pipe(
         pre,
         String.getSubstringFrom(text),
         (rawCode) => new RawCode({ rawCode }),
         O.some,
-      ),
-    ),
+      );
+    }),
     Match.discriminator(discriminator)("text_link", (text_link) =>
       pipe(new CompressedUrl({ compressedUrl: text_link.url }), O.some),
     ),
