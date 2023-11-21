@@ -39,7 +39,6 @@ function render(result: _Twoslash.TwoSlashReturn) {
       }
 
       return pipe(
-        //
         x.renderedMessage,
         S.split("\n"),
         ([first, ...rest]) =>
@@ -47,31 +46,47 @@ function render(result: _Twoslash.TwoSlashReturn) {
             rest,
             RA.map((x) => `// ${x}`),
             RA.prepend(`// TS${x.code} ${coords} "${identifier}": ${first}`),
-            RA.join("\n"),
           ),
+        (lineContent) => ({
+          type: "error" as const,
+          lineNumber: x.line === undefined ? undefined : x.line + 1,
+          lineContent,
+        }),
       );
     }),
-    RA.join("\n"),
   );
 
-  result.queries
+  const queriesLines = result.queries
     .filter((x) => x.kind === "query")
-    .sort((a, b) => a.line - b.line)
+    .map((q) => ({
+      type: "query" as const,
+      lineNumber: q.line,
+      lineContent: [
+        `//${Array(q.offset - twoslashQuerySign.length + 1)
+          .fill(" ")
+          .join("")}${twoslashQuerySign}${q.text}`,
+      ],
+    }));
+
+  const [unindexedLines, indexedLines] = pipe(
+    [...queriesLines, ...errorLines],
+    RA.map((x) => {
+      const { lineNumber } = x;
+      return lineNumber === undefined
+        ? E.left({ ...x, lineNumber })
+        : E.right({ ...x, lineNumber });
+    }),
+    RA.separate,
+  );
+
+  indexedLines
+    .sort((a, b) => a.lineNumber - b.lineNumber)
     .forEach((q) => {
-      lines.splice(
-        q.line + offset,
-        0,
-        "//" +
-          Array(q.offset - twoslashQuerySign.length + 1)
-            .fill(" ")
-            .join("") +
-          twoslashQuerySign +
-          q.text,
-      );
-      offset++;
+      lines.splice(q.lineNumber + offset, 0, ...q.lineContent);
+      offset += q.lineContent.length;
     });
 
-  return lines.join("\n").trim() + "\n" + errorLines;
+  return lines.join("\n").trim() + "\n" + unindexedLines.join("\n");
 }
 
 const makeLive = pipe(

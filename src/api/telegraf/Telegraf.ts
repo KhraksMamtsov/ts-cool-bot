@@ -1,6 +1,6 @@
 import * as _Telegraf from "telegraf";
 import { useNewReplies } from "telegraf/future";
-import { Context, Data, Effect, Layer, pipe, Schedule } from "effect";
+import { Exit, Context, Data, Effect, Layer, pipe, Schedule } from "effect";
 import * as TelegrafBot from "./TelegrafBot";
 import * as TO from "./TelegrafOptions";
 
@@ -38,6 +38,22 @@ const makeLive = pipe(
       <E, A>(effect: Effect.Effect<never, E, A>) => {
         const run: Effect.Effect<never, TelegrafLaunchError, void> = pipe(
           Effect.runPromiseExit(effect),
+          (x) => {
+            x.then((exit) => {
+              pipe(
+                exit,
+                Exit.match({
+                  onFailure: (x) => {
+                    console.log("exit onFailure", x._tag);
+                    console.dir(x, { depth: 1000 });
+                  },
+                  onSuccess: () => {
+                    console.log("exit onSuccess");
+                  },
+                }),
+              );
+            });
+          },
           () =>
             Effect.tryPromise({
               try: () => {
