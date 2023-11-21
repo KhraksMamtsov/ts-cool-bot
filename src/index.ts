@@ -2,7 +2,10 @@ import * as Telegraf from "./api/telegraf/Telegraf";
 import {
   Cause,
   Effect,
+  Either as E,
   Exit,
+  flow,
+  identity,
   Layer,
   Option as O,
   pipe,
@@ -16,6 +19,8 @@ import { compress } from "./api/ls-string/LzString";
 import { TelegrafBot, TelegrafBotPayload } from "./api/telegraf/TelegrafBot";
 import * as TO from "./api/telegraf/TelegrafOptions";
 import * as TSO from "./api/twoslash/TwoSlashOptions";
+import * as LS from "./api/link-shortner/LinkShortener";
+import { options } from "./api/link-shortner/LinkShortenerOptions";
 
 const PLAYGROUND_BASE = "https://www.typescriptlang.org/play/#code/";
 
@@ -40,19 +45,33 @@ const TwoSlashLive = pipe(
     }),
   ),
 );
+
+const LinkShortenerOptionsLive = pipe(
+  LS.LinkShortenerLive,
+  Layer.use(
+    options({
+      baseUrl: "https://tsplay.dev",
+    }),
+  ),
+);
 const handle = (bot: TelegrafBot) =>
   pipe(
     Stream.merge(bot.text$, bot.editedText$),
     Stream.run(
-      Sink.forEach((context) =>
-        pipe(
+      Sink.forEach((context) => {
+        // if (context.message.text === "throw") {
+        //   throw "OUTSIDE";
+        // }
+        return pipe(
           CS.fromTextMessage(context.message),
           O.match({
             onNone: () =>
               Effect.logInfo(`No payload in: "${context.message.text}"`),
             onSome: (codeBlocks) =>
               Effect.gen(function* (_) {
-                const twoslashService = yield* _(TS.TwoSlash);
+                const [twoslashService, linkShortenerService] = yield* _(
+                  Effect.all([TS.TwoSlash, LS.LinkShortener]),
+                );
 
                 const [errors, results] = pipe(
                   codeBlocks,
@@ -67,24 +86,39 @@ const handle = (bot: TelegrafBot) =>
                   Effect.all,
                 );
 
-                console.dir(results, {
-                  depth: 1000,
-                });
-
-                const answer = pipe(
+                const codes = pipe(
                   results,
                   RA.map((x) =>
                     pipe(
                       compress(x.code),
-                      O.getRight,
-                      O.map((x) => `[PLAYGROUND](${PLAYGROUND_BASE + x})`),
-                      RA.of,
-                      RA.append(O.some("```typescript\n" + x.code + "\n```")),
-                      RA.compact,
-                      RA.join("\n"),
+                      Effect.map((x) => PLAYGROUND_BASE + x),
+                      Effect.flatMap((url) =>
+                        pipe(
+                          linkShortenerService.shortenLink({ url }),
+                          Effect.timeout("3 seconds"),
+                          Effect.flatMap(O.map((x) => x.shortened)),
+                          Effect.orElseSucceed(() => url),
+                          Effect.map((x) => `[PLAYGROUND](${x})`),
+                        ),
+                      ),
+                      Effect.option,
+                      Effect.map(
+                        flow(
+                          RA.of,
+                          RA.append(
+                            O.some("```typescript\n" + x.code + "\n```"),
+                          ),
+                          RA.compact,
+                          RA.join("\n"),
+                        ),
+                      ),
                     ),
                   ),
-                  RA.join("\n"),
+                );
+
+                const answer = yield* _(
+                  Effect.all(codes, { concurrency: 5 }),
+                  Effect.map(RA.join("\n")),
                 );
 
                 if (context._tag === TelegrafBotPayload.TEXT) {
@@ -101,16 +135,21 @@ const handle = (bot: TelegrafBot) =>
                 }
               }),
           }),
-        ),
-      ),
+        );
+      }),
     ),
+
+    // Stream.orElse(() => Stream.merge(bot.text$, bot.editedText$)),
   );
 
 const program = Effect.gen(function* (_) {
   const telegrafService = yield* _(Telegraf.Telegraf);
   const bot = yield* _(telegrafService.init());
 
-  const handlers = handle(bot.bot).pipe(Effect.provide(TwoSlashLive));
+  const handlers = handle(bot.bot).pipe(
+    Effect.provide(TwoSlashLive),
+    Effect.provide(LinkShortenerOptionsLive),
+  );
 
   yield* _(bot.launch(handlers));
 });
@@ -128,8 +167,7 @@ pipe(
   exit,
   Exit.match({
     onFailure: (x) => {
-      console.log("exit onFailure");
-      console.log(Cause.pretty(x));
+      console.log("exit onFailure", x._tag);
       console.dir(x, { depth: 1000 });
     },
     onSuccess: () => {
@@ -137,5 +175,3 @@ pipe(
     },
   }),
 );
-
-console.log("exit: ", exit);

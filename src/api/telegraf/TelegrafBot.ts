@@ -25,7 +25,6 @@ export class EditedTextPayload extends Data.TaggedClass(
 }> {}
 
 export type TelegrafBot = ReturnType<typeof makeBot>;
-
 export const makeBot = (bot: _Bot) => {
   const text$ = Stream.async<never, never, TextPayload>((emit) => {
     bot.on(TF.message("text"), async (context, next) => {

@@ -423,6 +423,43 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@effect/platform-node@npm:^0.31.9":
+  version: 0.31.9
+  resolution: "@effect/platform-node@npm:0.31.9"
+  dependencies:
+    "@effect/platform": 0.30.6
+    mime: ^3.0.0
+    multipasta: ^0.1.17
+  peerDependencies:
+    effect: 2.0.0-next.55
+  checksum: ffd83491bf8c0ad5d207651ca56d9d5b11d41cdcdc7dccffd16a6090623e6c06a03e8a77e6f35f07efd6e4859530a9d4b581a12c7a7b3a8c43d9b601c3ae04e7
+  languageName: node
+  linkType: hard
+
+"@effect/platform@npm:0.30.6, @effect/platform@npm:^0.30.6":
+  version: 0.30.6
+  resolution: "@effect/platform@npm:0.30.6"
+  dependencies:
+    find-my-way: ^7.7.0
+    multipasta: ^0.1.17
+    path-browserify: ^1.0.1
+  peerDependencies:
+    "@effect/schema": ^0.48.0
+    effect: 2.0.0-next.55
+  checksum: 14fb9be88a87ff899b5d3de89295cfd00a6e86158d986fb4f1403b41c71e3275ccb7211d63006247ef40055efe8f8cec3ad9e9b893ba3be93cb39202104312c5
+  languageName: node
+  linkType: hard
+
+"@effect/schema@npm:^0.48.4":
+  version: 0.48.4
+  resolution: "@effect/schema@npm:0.48.4"
+  peerDependencies:
+    effect: 2.0.0-next.55
+    fast-check: ^3.13.2
+  checksum: d48934f8efbcee63c4cde117d2ce738645cf75a420d2ab689545cbc866c95328eeb451622ac140407afd8d840ab368cdff4d4c8893af8a3f2a2f32e446e781bb
+  languageName: node
+  linkType: hard
+
 "@eslint/eslintrc@npm:^1.2.1":
   version: 1.2.1
   resolution: "@eslint/eslintrc@npm:1.2.1"
@@ -2641,6 +2678,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fast-decode-uri-component@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "fast-decode-uri-component@npm:1.0.1"
+  checksum: 427a48fe0907e76f0e9a2c228e253b4d8a8ab21d130ee9e4bb8339c5ba4086235cf9576831f7b20955a752eae4b525a177ff9d5825dd8d416e7726939194fbee
+  languageName: node
+  linkType: hard
+
 "fast-deep-equal@npm:^3.1.1, fast-deep-equal@npm:^3.1.3":
   version: 3.1.3
   resolution: "fast-deep-equal@npm:3.1.3"
@@ -2679,6 +2723,15 @@ __metadata:
   version: 2.0.6
   resolution: "fast-levenshtein@npm:2.0.6"
   checksum: 92cfec0a8dfafd9c7a15fba8f2cc29cd0b62b85f056d99ce448bbcd9f708e18ab2764bda4dd5158364f4145a7c72788538994f0d1787b956ef0d1062b0f7c24c
+  languageName: node
+  linkType: hard
+
+"fast-querystring@npm:^1.0.0":
+  version: 1.1.2
+  resolution: "fast-querystring@npm:1.1.2"
+  dependencies:
+    fast-decode-uri-component: ^1.0.1
+  checksum: 7149f82ee9ac39a9c08c7ffe435b9f6deade76ae5e3675fe1835720513e8c4bc541e666b4b7b1c0c07e08f369dcf4828d00f2bee39889a90a168e1439cf27b0b
   languageName: node
   linkType: hard
 
@@ -2724,6 +2777,17 @@ __metadata:
   dependencies:
     to-regex-range: ^5.0.1
   checksum: cc283f4e65b504259e64fd969bcf4def4eb08d85565e906b7d36516e87819db52029a76b6363d0f02d0d532f0033c9603b9e2d943d56ee3b0d4f7ad3328ff917
+  languageName: node
+  linkType: hard
+
+"find-my-way@npm:^7.7.0":
+  version: 7.7.0
+  resolution: "find-my-way@npm:7.7.0"
+  dependencies:
+    fast-deep-equal: ^3.1.3
+    fast-querystring: ^1.0.0
+    safe-regex2: ^2.0.0
+  checksum: 6cd3fbfd57aa359475658bbc2336b27c561c16a91a1fb6346d025e3d6ff7a127fdc4cf23ac4b6ed8054534ac45f63a5b9421d52834ae1d36c47ccfde2a73a3aa
   languageName: node
   linkType: hard
 
@@ -4319,6 +4383,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mime@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "mime@npm:3.0.0"
+  bin:
+    mime: cli.js
+  checksum: f43f9b7bfa64534e6b05bd6062961681aeb406a5b53673b53b683f27fcc4e739989941836a355eef831f4478923651ecc739f4a5f6e20a76487b432bfd4db928
+  languageName: node
+  linkType: hard
+
 "mimic-fn@npm:^2.1.0":
   version: 2.1.0
   resolution: "mimic-fn@npm:2.1.0"
@@ -4453,6 +4526,13 @@ __metadata:
   version: 2.1.3
   resolution: "ms@npm:2.1.3"
   checksum: aa92de608021b242401676e35cfa5aa42dd70cbdc082b916da7fb925c542173e36bce97ea3e804923fe92c0ad991434e4a38327e15a1b5b5f945d66df615ae6d
+  languageName: node
+  linkType: hard
+
+"multipasta@npm:^0.1.17":
+  version: 0.1.18
+  resolution: "multipasta@npm:0.1.18"
+  checksum: a2dd9837fb45e1d395f3ce925593cc478fbea7b67a3767102940efff4142755a577ad89b067b33bfc3af1093775f0c7e6d695f0c0b571cc3ef8e4c8b874af5d7
   languageName: node
   linkType: hard
 
@@ -4801,6 +4881,13 @@ __metadata:
   version: 6.0.1
   resolution: "parse5@npm:6.0.1"
   checksum: 7d569a176c5460897f7c8f3377eff640d54132b9be51ae8a8fa4979af940830b2b0c296ce75e5bd8f4041520aadde13170dbdec44889975f906098ea0002f4bd
+  languageName: node
+  linkType: hard
+
+"path-browserify@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "path-browserify@npm:1.0.1"
+  checksum: c6d7fa376423fe35b95b2d67990060c3ee304fc815ff0a2dc1c6c3cfaff2bd0d572ee67e18f19d0ea3bbe32e8add2a05021132ac40509416459fffee35200699
   languageName: node
   linkType: hard
 
@@ -5217,6 +5304,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ret@npm:~0.2.0":
+  version: 0.2.2
+  resolution: "ret@npm:0.2.2"
+  checksum: 774964bb413a3525e687bca92d81c1cd75555ec33147c32ecca22f3d06409e35df87952cfe3d57afff7650a0f7e42139cf60cb44e94c29dde390243bc1941f16
+  languageName: node
+  linkType: hard
+
 "retry@npm:^0.12.0":
   version: 0.12.0
   resolution: "retry@npm:0.12.0"
@@ -5281,6 +5375,15 @@ __metadata:
   dependencies:
     buffer-alloc: ^1.2.0
   checksum: 8c0a08f7a2bec1b33400e17bb7cce40ebe0e53902dbba13735e0131fa432140650de2ab4750637623e02e28edab10fa439825b57a7e8b705cae1deb80a58e516
+  languageName: node
+  linkType: hard
+
+"safe-regex2@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "safe-regex2@npm:2.0.0"
+  dependencies:
+    ret: ~0.2.0
+  checksum: f5e182fca040dedd50ae052ea0eb035d9903b2db71243d5d8b43299735857288ef2ab52546a368d9c6fd1333b2a0d039297925e78ffc14845354f3f6158af7c2
   languageName: node
   linkType: hard
 
@@ -5965,6 +6068,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "typescript-starter@workspace:."
   dependencies:
+    "@effect/platform": ^0.30.6
+    "@effect/platform-node": ^0.31.9
+    "@effect/schema": ^0.48.4
     "@relmify/jest-fp-ts": ^2.0.0
     "@types/jest": ^27.4.1
     "@types/lz-string": ^1.3.34
