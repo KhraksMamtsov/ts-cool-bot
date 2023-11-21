@@ -102,7 +102,6 @@ const handle = (bot: TelegrafBot) =>
                               `[PLAYGROUND](${url}) \\+ [PLAYGROUND\\_SHORT](${x})`,
                           ),
                           Effect.orElseSucceed(() => `[PLAYGROUND](${url})`),
-                          (x) => x,
                         ),
                       ),
                       Effect.option,
