@@ -98,10 +98,7 @@ const makeLive = pipe(
           try: () => _Twoslash.twoslasher(code, "tsx", options),
           catch: (x) => new TwoslashCreationError({ options, code, case: x }),
         }),
-        E.map((x) => ({
-          ...x,
-          code: render(x),
-        })),
+        E.map(render),
       );
 
     return { create } as const;

@@ -33,7 +33,6 @@ const TelegrafLive = pipe(
     }),
   ),
 );
-
 const TwoSlashLive = pipe(
   TS.TwoSlashLive,
   Layer.use(
@@ -48,11 +47,7 @@ const TwoSlashLive = pipe(
 
 const LinkShortenerOptionsLive = pipe(
   LS.LinkShortenerLive,
-  Layer.use(
-    options({
-      baseUrl: "https://tsplay.dev",
-    }),
-  ),
+  Layer.use(options({ baseUrl: "https://tsplay.dev" })),
 );
 const handle = (bot: TelegrafBot) =>
   pipe(
@@ -90,7 +85,7 @@ const handle = (bot: TelegrafBot) =>
                   results,
                   RA.map((x) =>
                     pipe(
-                      compress(x.code),
+                      compress(x),
                       Effect.map((x) => PLAYGROUND_BASE + x),
                       Effect.flatMap((url) =>
                         pipe(
@@ -108,9 +103,7 @@ const handle = (bot: TelegrafBot) =>
                       Effect.map(
                         flow(
                           RA.of,
-                          RA.append(
-                            O.some("```typescript\n" + x.code + "\n```"),
-                          ),
+                          RA.append(O.some("```typescript\n" + x + "\n```")),
                           RA.compact,
                           RA.join("\n"),
                         ),

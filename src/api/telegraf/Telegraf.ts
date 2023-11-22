@@ -1,6 +1,6 @@
 import * as _Telegraf from "telegraf";
 import { useNewReplies } from "telegraf/future";
-import { Exit, Context, Data, Effect, Layer, pipe, Schedule } from "effect";
+import { Exit, Context, Data, Effect, Layer, pipe } from "effect";
 import * as TelegrafBot from "./TelegrafBot";
 import * as TO from "./TelegrafOptions";
 
