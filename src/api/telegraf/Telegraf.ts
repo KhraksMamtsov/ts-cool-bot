@@ -35,7 +35,7 @@ const makeLive = pipe(
 
     const launch =
       (bot: TelegrafBot._Bot) =>
-      <E, A>(effect: Effect.Effect<never, E, A>) => {
+      <A>(effect: Effect.Effect<never, never, A>) => {
         const run: Effect.Effect<never, TelegrafLaunchError, void> = pipe(
           Effect.runPromiseExit(effect),
           (x) => {

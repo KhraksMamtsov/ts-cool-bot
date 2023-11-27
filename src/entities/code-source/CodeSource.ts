@@ -54,10 +54,11 @@ type Help<T, D extends keyof T> = T[D] extends infer V
     : T
   : T;
 
+const matchType = Match.discriminator(discriminator);
 const fromText = (text: string) =>
   pipe(
     Match.type<Help<MessageEntity, discriminator>>(),
-    Match.discriminator(discriminator)("url", (url) =>
+    matchType("url", (url) =>
       pipe(
         url,
         String.getSubstringFrom(text),
@@ -65,22 +66,19 @@ const fromText = (text: string) =>
         O.some,
       ),
     ),
-    Match.discriminator(discriminator)("pre", (pre) => {
-      if (
-        ![undefined, "ts", "typescript", "js", "javascript"].includes(
-          pre.language,
-        )
-      ) {
-        return O.none();
-      }
-      return pipe(
-        pre,
-        String.getSubstringFrom(text),
-        (rawCode) => new RawCode({ rawCode }),
-        O.some,
-      );
+    matchType("pre", (pre) => {
+      return ![undefined, "ts", "typescript", "js", "javascript"].includes(
+        pre.language?.toLowerCase(),
+      )
+        ? O.none()
+        : pipe(
+            pre,
+            String.getSubstringFrom(text),
+            (rawCode) => new RawCode({ rawCode }),
+            O.some,
+          );
     }),
-    Match.discriminator(discriminator)("text_link", (text_link) =>
+    matchType("text_link", (text_link) =>
       pipe(new CompressedUrl({ compressedUrl: text_link.url }), O.some),
     ),
     Match.orElse((_) => O.none()),
