@@ -1,14 +1,17 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "module": "esnext",
-    "moduleResolution": "node",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "lib": [
       "es2021"
     ],
     "allowJs": true,
     "downlevelIteration": true,
     "outDir": "build",
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noPropertyAccessFromIndexSignature": true,
     "rootDir": "src",
     "strict": true,
     "noUncheckedIndexedAccess": true,
@@ -23,7 +26,6 @@
     "skipLibCheck": true,
     "types": [
       "node",
-      "@types/jest"
     ],
     "typeRoots": [
       "./node_modules/@types"

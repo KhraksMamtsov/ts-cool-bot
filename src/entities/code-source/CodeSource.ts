@@ -7,10 +7,10 @@ import {
   ReadonlyArray as RA,
   flow,
 } from "effect";
-import * as LzString from "../../api/ls-string/LzString";
-import * as String from "../../libs/string/string";
+import * as LzString from "../../api/ls-string/LzString.js";
+import * as String from "../../libs/string/string.js";
 
-import { Message, MessageEntity } from "telegraf/typings/core/types/typegram";
+import type { Message, MessageEntity } from "@telegraf/types";
 
 // https://github.com/typescript-community/community-bot/blob/master/src/util/codeBlocks.ts#L7C2-L7C2
 const PLAYGROUND_REGEX =

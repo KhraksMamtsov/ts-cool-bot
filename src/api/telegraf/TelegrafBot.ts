@@ -1,10 +1,7 @@
 import { Chunk, Data, Effect, Stream } from "effect";
 import * as TF from "telegraf/filters";
-import {
-  ExtraEditMessageText,
-  ExtraReplyMessage,
-} from "telegraf/typings/telegram-types";
-import { Message, Update } from "telegraf/typings/core/types/typegram";
+import type { Convenience } from "telegraf/types";
+import type { Message, Update } from "@telegraf/types";
 import * as _Telegraf from "telegraf";
 
 export type UpdateTextContext = _Telegraf.Context<Update>;
@@ -81,19 +78,19 @@ class TelegrafCtxReplyWithMarkdownError extends Data.TaggedError(
 )<{
   readonly error: unknown;
   readonly markdown: string;
-  readonly extra: ExtraReplyMessage;
+  readonly extra: Convenience.ExtraReplyMessage;
 }> {}
 class TelegrafCtxEditMessageTextError extends Data.TaggedError(
   CtxErrorType.EDIT_MESSAGE_TEXT,
 )<{
   readonly error: unknown;
   readonly markdown: string;
-  readonly extra: ExtraEditMessageText;
+  readonly extra: Convenience.ExtraEditMessageText;
 }> {}
 
 export const replyWithMarkdown =
   (context: UpdateTextContext) =>
-  (markdown: string, extra: ExtraReplyMessage) =>
+  (markdown: string, extra: Convenience.ExtraReplyMessage) =>
     Effect.tryPromise({
       try: () => context.replyWithMarkdownV2(markdown, extra),
       catch: (error) =>
@@ -102,7 +99,11 @@ export const replyWithMarkdown =
 
 export const editMessageText =
   (context: UpdateTextContext) =>
-  (markdown: string, messageId: number, extra: ExtraEditMessageText) =>
+  (
+    markdown: string,
+    messageId: number,
+    extra: Convenience.ExtraEditMessageText,
+  ) =>
     Effect.tryPromise({
       try: () =>
         context.telegram.editMessageText(

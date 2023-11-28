@@ -1,8 +1,9 @@
 import * as _Telegraf from "telegraf";
 import { useNewReplies } from "telegraf/future";
-import { Exit, Context, Data, Effect, Layer, pipe } from "effect";
-import * as TelegrafBot from "./TelegrafBot";
-import * as TO from "./TelegrafOptions";
+import { Exit, Context, Data, Effect, Layer, pipe, ConfigSecret } from "effect";
+import * as TelegrafBot from "./TelegrafBot.js";
+import * as TO from "./TelegrafOptions.js";
+import * as TC from "./TelegrafConfig.js";
 
 export enum ErrorType {
   INIT = "INIT::TelegrafErrorType",
@@ -18,13 +19,15 @@ class TelegrafLaunchError extends Data.TaggedError(ErrorType.LAUNCH)<{
 }> {}
 
 const makeLive = pipe(
-  TO.TelegrafOptions,
-  Effect.map((x) => {
+  [TO.TelegrafOptions, Effect.config(TC.TelegrafConfig)] as const,
+  Effect.all,
+  Effect.map(([options, telegrafConfig]) => {
     const init = () =>
       pipe(
         Effect.try({
-          try: () => new _Telegraf.Telegraf(x.botToken, x.options),
-          catch: (cause) => new TelegrafInitError({ options: x, cause }),
+          try: () =>
+            new _Telegraf.Telegraf(ConfigSecret.value(telegrafConfig), options),
+          catch: (cause) => new TelegrafInitError({ options, cause }),
         }),
         Effect.map((x) => x.use(useNewReplies())),
         Effect.map((x) => ({

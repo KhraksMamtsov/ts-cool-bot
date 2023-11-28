@@ -1,4 +1,4 @@
-import * as Telegraf from "./api/telegraf/Telegraf";
+import * as Telegraf from "./api/telegraf/Telegraf.js";
 import {
   Effect,
   Either as E,
@@ -13,27 +13,19 @@ import {
   Sink,
   Stream,
 } from "effect";
-import * as CS from "./entities/code-source/CodeSource";
-import * as TS from "./api/twoslash/TwoSlashService";
-import * as LZS from "./api/ls-string/LzString";
-import { TelegrafBot } from "./api/telegraf/TelegrafBot";
-import * as TO from "./api/telegraf/TelegrafOptions";
-import * as TSO from "./api/twoslash/TwoSlashOptions";
-import * as LS from "./api/link-shortner/LinkShortener";
-import { options } from "./api/link-shortner/LinkShortenerOptions";
-import * as AT from "./entities/answer-text/AnswerText";
+import * as CS from "./entities/code-source/CodeSource.js";
+import * as TS from "./api/twoslash/TwoSlashService.js";
+import * as LZS from "./api/ls-string/LzString.js";
+import type { TelegrafBot } from "./api/telegraf/TelegrafBot.js";
+import * as TO from "./api/telegraf/TelegrafOptions.js";
+import * as TSO from "./api/twoslash/TwoSlashOptions.js";
+import * as LS from "./api/link-shortner/LinkShortener.js";
+import { options } from "./api/link-shortner/LinkShortenerOptions.js";
+import * as AT from "./entities/answer-text/AnswerText.js";
 
 const PLAYGROUND_BASE = "https://www.typescriptlang.org/play/#code/";
 
-const TelegrafLive = pipe(
-  Telegraf.TelegrafLive,
-  Layer.use(
-    TO.options({
-      options: {},
-      botToken: "5178452921:AAFJ_70Dd6P4mWhcJGCKRzZpAUIJ1lm2ins",
-    }),
-  ),
-);
+const TelegrafLive = pipe(Telegraf.TelegrafLive, Layer.use(TO.options({})));
 const TwoSlashLive = pipe(
   TS.TwoSlashLive,
   Layer.use(

@@ -1,7 +1,7 @@
 import { HttpClient as Http } from "@effect/platform";
 import { Context, Effect, Layer } from "effect";
 import { Schema } from "@effect/schema";
-import { LinkShortenerOptions } from "./LinkShortenerOptions";
+import { LinkShortenerOptions } from "./LinkShortenerOptions.js";
 
 const LinkShortenerRequestSchema = Schema.struct({ url: Schema.string });
 const LinkShortenerResponseSchema = Schema.struct({ shortened: Schema.string });

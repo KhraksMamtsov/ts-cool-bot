@@ -9,7 +9,7 @@ import {
   ReadonlyArray as RA,
   String as S,
 } from "effect";
-import * as TSO from "./TwoSlashOptions";
+import * as TSO from "./TwoSlashOptions.js";
 
 function render(result: _Twoslash.TwoSlashReturn) {
   const lines = result.code.split("\n");

@@ -8,10 +8,7 @@ export type TelegrafToken = TelegrafCtorParams[0];
 export interface TelegrafOptions {
   readonly _: unique symbol;
 }
-export interface TelegrafOptionsService {
-  readonly options: _TelegrafOptions;
-  readonly botToken: TelegrafToken;
-}
+export interface TelegrafOptionsService extends _TelegrafOptions {}
 export const TelegrafOptions = Context.Tag<
   TelegrafOptions,
   TelegrafOptionsService
