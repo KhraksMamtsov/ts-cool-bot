@@ -86,7 +86,10 @@ function render(result: _Twoslash.TwoSlashReturn) {
       offset += q.lineContent.length;
     });
 
-  return lines.join("\n").trim() + "\n" + unindexedLines.join("\n");
+  return {
+    code: lines.join("\n").trim() + "\n" + unindexedLines.join("\n"),
+    playgroundUrl: result.playgroundURL,
+  };
 }
 
 const makeLive = pipe(

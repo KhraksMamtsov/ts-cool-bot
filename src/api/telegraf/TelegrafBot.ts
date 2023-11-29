@@ -10,9 +10,16 @@ export type _Bot = _Telegraf.Telegraf<UpdateTextContext>;
 export enum TelegrafBotPayload {
   TEXT = "TEXT::TelegrafBotPayload",
   EDITED_TEXT = "EDITED_TEXT::TelegrafBotPayload",
+  HELP = "HELP::TelegrafBotPayload",
 }
 
 export class TextPayload extends Data.TaggedClass(TelegrafBotPayload.TEXT)<{
+  readonly message: Update.New & Update.NonChannel & Message.TextMessage;
+  readonly replyWithMarkdown: ReturnType<typeof replyWithMarkdown>;
+  readonly editMessageText: ReturnType<typeof editMessageText>;
+}> {}
+
+export class HelpPayload extends Data.TaggedClass(TelegrafBotPayload.HELP)<{
   readonly message: Update.New & Update.NonChannel & Message.TextMessage;
   readonly replyWithMarkdown: ReturnType<typeof replyWithMarkdown>;
   readonly editMessageText: ReturnType<typeof editMessageText>;
@@ -45,6 +52,24 @@ export const makeBot = (bot: _Bot) => {
     });
   });
 
+  const help$ = Stream.async<never, never, HelpPayload>((emit) => {
+    bot.help(async (context, next) => {
+      await emit(
+        Effect.succeed(
+          Chunk.of(
+            new HelpPayload({
+              message: context.message,
+              replyWithMarkdown: replyWithMarkdown(context),
+              editMessageText: editMessageText(context),
+            }),
+          ),
+        ),
+      );
+
+      return await next();
+    });
+  });
+
   const editedText$ = Stream.async<never, never, EditedTextPayload>((emit) => {
     bot.on(TF.editedMessage("text"), async (context, next) => {
       await emit(
@@ -65,6 +90,7 @@ export const makeBot = (bot: _Bot) => {
   return {
     text$,
     editedText$,
+    help$,
   } as const;
 };
 

@@ -1,6 +1,16 @@
 import * as _Telegraf from "telegraf";
 import { useNewReplies } from "telegraf/future";
-import { Exit, Context, Data, Effect, Layer, pipe, ConfigSecret } from "effect";
+import {
+  Exit,
+  Context,
+  Data,
+  Effect,
+  Layer,
+  pipe,
+  ConfigSecret,
+  Schedule,
+  Duration,
+} from "effect";
 import * as TelegrafBot from "./TelegrafBot.js";
 import * as TO from "./TelegrafOptions.js";
 import * as TC from "./TelegrafConfig.js";
@@ -39,23 +49,20 @@ const makeLive = pipe(
     const launch =
       (bot: TelegrafBot._Bot) =>
       <A>(effect: Effect.Effect<never, never, A>) => {
-        const run: Effect.Effect<never, TelegrafLaunchError, void> = pipe(
+        return pipe(
           Effect.runPromiseExit(effect),
           (x) => {
-            x.then((exit) => {
-              pipe(
-                exit,
-                Exit.match({
-                  onFailure: (x) => {
-                    console.log("exit onFailure", x._tag);
-                    console.dir(x, { depth: 1000 });
-                  },
-                  onSuccess: () => {
-                    console.log("exit onSuccess");
-                  },
-                }),
-              );
-            });
+            x.then(
+              Exit.match({
+                onFailure: (x) => {
+                  console.log("exit onFailure", x._tag);
+                  console.dir(x, { depth: 1000 });
+                },
+                onSuccess: () => {
+                  console.log("exit onSuccess");
+                },
+              }),
+            );
           },
           () =>
             Effect.tryPromise({
@@ -65,10 +72,8 @@ const makeLive = pipe(
               },
               catch: (cause) => new TelegrafLaunchError({ cause }),
             }),
-          Effect.orElse(() => run), // ?
+          Effect.retry(Schedule.exponential("1 seconds", 2)),
         );
-
-        return run;
       };
 
     return { init } as const;
