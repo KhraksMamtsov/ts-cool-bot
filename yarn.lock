@@ -414,27 +414,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@effect/platform@npm:^0.31.1":
-  version: 0.31.1
-  resolution: "@effect/platform@npm:0.31.1"
+"@effect/platform@npm:^0.32.2":
+  version: 0.32.2
+  resolution: "@effect/platform@npm:0.32.2"
   dependencies:
     find-my-way: ^7.7.0
     multipasta: ^0.1.19
     path-browserify: ^1.0.1
   peerDependencies:
-    "@effect/schema": ^0.49.0
-    effect: 2.0.0-next.56
-  checksum: ec8e579f9343e0bfb7dedce50919872204c9fe8bd23e0a909c44263b2b9ae292893e86fef0ee83df9aaa0b6ab815b1334e9f8a924a48d3d55504f0365378f411
+    "@effect/schema": ^0.51.1
+    effect: 2.0.0-next.58
+  checksum: e4409e82b05fba46c64399bfb8e794da1f5d87a36b3884f264c1c388ce529a33a6bc62b380462d9569d177cbeb77775f3ff158fe62eba543368f8b0e2f2f723f
   languageName: node
   linkType: hard
 
-"@effect/schema@npm:^0.49.4":
-  version: 0.49.4
-  resolution: "@effect/schema@npm:0.49.4"
+"@effect/schema@npm:^0.51.1":
+  version: 0.51.1
+  resolution: "@effect/schema@npm:0.51.1"
   peerDependencies:
-    effect: 2.0.0-next.56
+    effect: 2.0.0-next.58
     fast-check: ^3.13.2
-  checksum: a5e9afad9d7eba7444135e29fa02f40a311be11e0b44929320b6244c99104ec138090be046125e7716af9757866c8a4e0c84e0c0fc45e82dcc71804e61c7962a
+  checksum: 681aad0d293b8e19fae4c68c5200fd41e1b305e6694f4db620e8e50c9efd597f815e2aea6f0a222b35936a18de86dafc063215993b3c2a81d47a2068007a6395
   languageName: node
   linkType: hard
 
@@ -1972,10 +1972,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"effect@npm:^2.0.0-next.56":
-  version: 2.0.0-next.56
-  resolution: "effect@npm:2.0.0-next.56"
-  checksum: 529f523282a7bd187cccdafdbfc1cac736c2ca6504eab08f74d14ebaf4ae8d988359ae7a8abd490d612b6dff8c203982bc73908d9c0d963d4c04df3f621f4fc0
+"effect@npm:^2.0.0-next.58":
+  version: 2.0.0-next.58
+  resolution: "effect@npm:2.0.0-next.58"
+  checksum: 2b01b206a8c1de1ad9434784fb64384c9a74e5dee9c56ed18118f20d20d9e0e298a536b4cfe5763b38736a516717b21de23f7c08d06ef5bd8b26a716db620ae6
   languageName: node
   linkType: hard
 
@@ -5073,8 +5073,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "typescript-starter@workspace:."
   dependencies:
-    "@effect/platform": ^0.31.1
-    "@effect/schema": ^0.49.4
+    "@effect/platform": ^0.32.2
+    "@effect/schema": ^0.51.1
     "@types/jest": ^27.4.1
     "@types/lz-string": ^1.5.0
     "@types/node": ^20.10.0
@@ -5082,7 +5082,7 @@ __metadata:
     "@typescript-eslint/parser": ^5.16.0
     "@typescript/twoslash": ^3.2.4
     copyfiles: ^2.4.1
-    effect: ^2.0.0-next.56
+    effect: ^2.0.0-next.58
     eslint: ^8.11.0
     eslint-config-prettier: ^8.5.0
     eslint-plugin-jest: ^26.1.2

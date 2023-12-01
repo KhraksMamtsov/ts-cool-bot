@@ -12,8 +12,10 @@ import {
   ReadonlyArray as RA,
   Schedule,
   Sink,
+  Console,
   Stream,
 } from "effect";
+import { Schema } from "@effect/schema";
 import * as CS from "./entities/code-source/CodeSource.js";
 import * as TS from "./api/twoslash/TwoSlashService.js";
 import type { TelegrafBot } from "./api/telegraf/TelegrafBot.js";
@@ -24,10 +26,10 @@ import { options } from "./api/link-shortner/LinkShortenerOptions.js";
 import * as AT from "./entities/answer-text/AnswerText.js";
 import { TelegrafBotPayload } from "./api/telegraf/TelegrafBot.js";
 
-const TelegrafLive = pipe(Telegraf.TelegrafLive, Layer.use(TO.options({})));
+const TelegrafLive = pipe(Telegraf.TelegrafLive, Layer.provide(TO.options({})));
 const TwoSlashLive = pipe(
   TS.TwoSlashLive,
-  Layer.use(
+  Layer.provide(
     TSO.options({
       defaultOptions: {
         noStaticSemanticInfo: true,
@@ -39,10 +41,10 @@ const TwoSlashLive = pipe(
 
 const LinkShortenerOptionsLive = pipe(
   LS.LinkShortenerLive,
-  Layer.use(options({ baseUrl: "https://tsplay.dev" })),
+  Layer.provide(options({ baseUrl: "https://tsplay.dev" })),
 );
-const handle = (bot: TelegrafBot) =>
-  pipe(
+const handle = (bot: TelegrafBot) => {
+  return pipe(
     bot.text$,
     Stream.merge(bot.help$),
     Stream.run(
@@ -92,7 +94,9 @@ const handle = (bot: TelegrafBot) =>
                   yield* _(
                     errors,
                     RA.map((x) => Effect.logError(x)),
-                    Effect.all,
+                    Effect.allWith({
+                      concurrency: "unbounded",
+                    }),
                   );
 
                   const getShortLinksFiber = yield* _(
@@ -157,24 +161,25 @@ const handle = (bot: TelegrafBot) =>
       ),
     ),
   );
+};
 
 const program = Effect.gen(function* (_) {
   const telegrafService = yield* _(Telegraf.Telegraf);
-  const bot = yield* _(telegrafService.init());
+  const { bot, launch } = yield* _(telegrafService.init());
 
-  const handlers = handle(bot.bot).pipe(
+  const handlers = pipe(
+    handle(bot),
     Effect.provide(TwoSlashLive),
     Effect.provide(LinkShortenerOptionsLive),
     Effect.catchAll(Effect.log),
   );
-  yield* _(bot.launch(handlers));
+  yield* _(launch(handlers));
 });
 
 const runnable = pipe(
   //
   program,
   Effect.provide(TelegrafLive),
-  Effect.scoped,
 );
 
 Effect.runPromiseExit(runnable).then(

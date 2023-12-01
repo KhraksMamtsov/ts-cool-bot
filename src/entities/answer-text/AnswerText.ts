@@ -24,7 +24,7 @@ export const create = (args: CreationArgs): AnswerText =>
               `\\+ [SHORT\\_PLAYGROUND](${shortPlaygroundUrl})`,
           ),
         ],
-        RA.compact,
+        RA.getSomes,
         RA.join(" "),
       );
 

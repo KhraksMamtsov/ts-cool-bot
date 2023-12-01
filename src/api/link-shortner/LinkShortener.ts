@@ -1,5 +1,5 @@
 import { HttpClient as Http } from "@effect/platform";
-import { Context, Effect, Layer } from "effect";
+import { Context, Effect, Layer, pipe } from "effect";
 import { Schema } from "@effect/schema";
 import { LinkShortenerOptions } from "./LinkShortenerOptions.js";
 
@@ -34,6 +34,6 @@ export const LinkShortener = Context.Tag<LinkShortener, LinkShortenerService>(
 );
 
 export const LinkShortenerLive = Layer.provide(
-  Http.client.layer,
   Layer.effect(LinkShortener, makeLinkShortener),
+  Http.client.layer,
 );

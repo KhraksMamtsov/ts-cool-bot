@@ -11,7 +11,9 @@
   "scripts": {
     "build": "rimraf ./build && tsc && yarn copy",
     "copy": "copyfiles --flat src/index.hbs src/styles.css build",
-    "start:build:dev:watch": "tsc --watch",
+    "build:dev:watch": "tsc --watch",
+    "typescheck": "tsc --noEmit",
+    "typescheck:watch": "tsc --noEmit --watch",
     "start:dev:watch": "node --env-file=.env --watch build/index.js",
     "start": "node build/index.js",
     "lint": "eslint . --ext .ts",
@@ -49,12 +51,12 @@
     "typescript": "^5.3.2"
   },
   "dependencies": {
-    "@effect/platform": "^0.31.1",
-    "@effect/schema": "^0.49.4",
+    "@effect/platform": "^0.32.2",
+    "@effect/schema": "^0.51.1",
     "@types/lz-string": "^1.5.0",
     "@typescript/twoslash": "^3.2.4",
     "copyfiles": "^2.4.1",
-    "effect": "^2.0.0-next.56",
+    "effect": "^2.0.0-next.58",
     "eslint-plugin-jest": "^26.1.2",
     "jest": "^27.5.1",
     "lz-string": "^1.5.0",
