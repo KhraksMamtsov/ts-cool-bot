@@ -4,6 +4,9 @@
   "description": "A basic typescript app starter for newbies in 2019.",
   "main": "index.js",
   "type": "module",
+  "engines": {
+    "node": "20.10.0"
+  },
   "scripts": {
     "build": "rimraf ./build && tsc",
     "copy": "copyfiles --flat src/index.hbs src/styles.css build",
