@@ -4,12 +4,8 @@
   "description": "A basic typescript app starter for newbies in 2019.",
   "main": "index.js",
   "type": "module",
-  "volta": {
-    "node": "16.14.0",
-    "yarn": "1.22.18"
-  },
   "scripts": {
-    "build": "rimraf ./build && tsc && yarn copy",
+    "build": "rimraf ./build && tsc",
     "copy": "copyfiles --flat src/index.hbs src/styles.css build",
     "build:dev:watch": "tsc --watch",
     "typescheck": "tsc --noEmit",
