@@ -25,6 +25,7 @@ import * as LS from "./api/link-shortner/LinkShortener.js";
 import { options } from "./api/link-shortner/LinkShortenerOptions.js";
 import * as AT from "./entities/answer-text/AnswerText.js";
 import { TelegrafBotPayload } from "./api/telegraf/TelegrafBot.js";
+import * as http from "node:http";
 
 const TelegrafLive = pipe(Telegraf.TelegrafLive, Layer.provide(TO.options({})));
 const TwoSlashLive = pipe(
@@ -193,3 +194,15 @@ Effect.runPromiseExit(runnable).then(
     },
   }),
 );
+
+const port = process.env["PORT"];
+
+if (port) {
+  http
+    .createServer((_req, res) => {
+      res.writeHead(200, { "Content-Type": "text/plain" });
+      res.write("Hello World!");
+      res.end();
+    })
+    .listen(Number(port));
+}
