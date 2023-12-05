@@ -5,17 +5,14 @@ import {
   Exit,
   Fiber,
   flow,
-  identity,
   Layer,
   Option as O,
   pipe,
   ReadonlyArray as RA,
   Schedule,
   Sink,
-  Console,
   Stream,
 } from "effect";
-import { Schema } from "@effect/schema";
 import * as CS from "./entities/code-source/CodeSource.js";
 import * as TS from "./api/twoslash/TwoSlashService.js";
 import type { TelegrafBot } from "./api/telegraf/TelegrafBot.js";
@@ -159,6 +156,8 @@ const handle = (bot: TelegrafBot) => {
                         Effect.tap(Effect.log),
                         Effect.either,
                       );
+                    } else {
+                      yield* _(Effect.logError(answerMessage.left));
                     }
                   });
                 },
