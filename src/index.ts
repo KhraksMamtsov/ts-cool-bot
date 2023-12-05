@@ -122,8 +122,6 @@ const handle = (bot: TelegrafBot) => {
                         ),
                       ),
                       Effect.allWith({ concurrency: 3 }),
-                      Effect.timeout("5 seconds"),
-                      Effect.flatMap(identity),
                       Effect.fork,
                     );
 
@@ -167,7 +165,6 @@ const handle = (bot: TelegrafBot) => {
               }),
             );
           },
-          Effect.unified,
           (x) => x,
         ),
       ),
