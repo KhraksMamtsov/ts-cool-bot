@@ -55,11 +55,11 @@ const makeLive = pipe(
             x.then(
               Exit.match({
                 onFailure: (x) => {
-                  console.log("exit onFailure", x._tag);
+                  console.log("launch exit onFailure", x._tag);
                   console.dir(x, { depth: 1000 });
                 },
                 onSuccess: () => {
-                  console.log("exit onSuccess");
+                  console.log("launch exit onSuccess");
                 },
               }),
             );

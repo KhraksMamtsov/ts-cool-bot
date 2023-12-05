@@ -189,11 +189,11 @@ const runnable = pipe(
 Effect.runPromiseExit(runnable).then(
   Exit.match({
     onFailure: (x) => {
-      console.log("exit onFailure", x._tag);
+      console.log("runPromiseExit exit onFailure", x._tag);
       console.dir(x, { depth: 1000 });
     },
     onSuccess: () => {
-      console.log("exit onSuccess");
+      console.log("runPromiseExit exit onSuccess");
     },
   }),
 );
