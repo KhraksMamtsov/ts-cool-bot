@@ -48,6 +48,7 @@ const handle = (bot: TelegrafBot) => {
   return pipe(
     bot.text$,
     Stream.merge(bot.help$),
+    Stream.merge(bot.caption$),
     Stream.run(
       Sink.forEach(
         flow((context) => {
@@ -64,10 +65,12 @@ const handle = (bot: TelegrafBot) => {
             );
           }
           return pipe(
-            CS.fromTextMessage(context.message),
+            CS.fromPayload(context),
             O.match({
               onNone: () =>
-                Effect.logInfo(`No payload in: "${context.message.text}"`),
+                Effect.logInfo(
+                  `No payload in: "${JSON.stringify(context.message)}"`,
+                ),
               onSome: (codeBlocks) => {
                 return Effect.gen(function* (_) {
                   const [twoslashService, linkShortenerService] = yield* _(

@@ -11,6 +11,11 @@ import * as LzString from "../../api/ls-string/LzString.js";
 import * as String from "../../libs/string/string.js";
 
 import type { Message, MessageEntity } from "@telegraf/types";
+import type { TextPayload } from "../../api/telegraf/TelegrafBot.js";
+import {
+  CaptionPayload,
+  TelegrafBotPayload,
+} from "../../api/telegraf/TelegrafBot.js";
 
 // https://github.com/typescript-community/community-bot/blob/master/src/util/codeBlocks.ts#L7C2-L7C2
 const PLAYGROUND_REGEX =
@@ -84,15 +89,25 @@ const fromText = (text: string) =>
     Match.orElse((_) => O.none()),
   );
 
-export const fromTextMessage = (textPayload: Message.TextMessage) => {
-  const fromTextFor = fromText(textPayload.text);
+export const fromPayload = (payload: TextPayload | CaptionPayload) => {
+  const { source, entities } =
+    payload._tag === TelegrafBotPayload.TEXT
+      ? {
+          source: payload.message.text,
+          entities: payload.message.entities,
+        }
+      : {
+          source: payload.message.caption ?? "",
+          entities: payload.message.caption_entities,
+        };
+  const fromSourceFor = fromText(source);
 
   return pipe(
-    textPayload.entities,
+    entities,
     O.fromNullable,
     O.flatMap(
       flow(
-        RA.filterMap(fromTextFor),
+        RA.filterMap(fromSourceFor),
         RA.match({
           onEmpty: O.none,
           onNonEmpty: O.some,
