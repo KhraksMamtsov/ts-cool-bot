@@ -41,6 +41,7 @@ const LinkShortenerOptionsLive = pipe(
   LS.LinkShortenerLive,
   Layer.provide(options({ baseUrl: "https://tsplay.dev" })),
 );
+
 const handle = (bot: TelegrafBot) => {
   return pipe(
     bot.text$,

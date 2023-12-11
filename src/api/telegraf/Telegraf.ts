@@ -7,9 +7,8 @@ import {
   Effect,
   Layer,
   pipe,
-  ConfigSecret,
   Schedule,
-  Duration,
+  Secret,
 } from "effect";
 import * as TelegrafBot from "./TelegrafBot.js";
 import * as TO from "./TelegrafOptions.js";
@@ -29,14 +28,14 @@ class TelegrafLaunchError extends Data.TaggedError(ErrorType.LAUNCH)<{
 }> {}
 
 const makeLive = pipe(
-  [TO.TelegrafOptions, Effect.config(TC.TelegrafConfig)] as const,
+  [TO.TelegrafOptions, TC.TelegrafConfig] as const,
   Effect.all,
   Effect.map(([options, telegrafConfig]) => {
     const init = () =>
       pipe(
         Effect.try({
           try: () =>
-            new _Telegraf.Telegraf(ConfigSecret.value(telegrafConfig), options),
+            new _Telegraf.Telegraf(Secret.value(telegrafConfig), options),
           catch: (cause) => new TelegrafInitError({ options, cause }),
         }),
         Effect.map((x) => x.use(useNewReplies())),
