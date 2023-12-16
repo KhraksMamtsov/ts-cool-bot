@@ -76,7 +76,6 @@ export const makeBot = (bot: _Bot) => {
       return await next();
     });
   });
-
   const help$ = Stream.async<never, never, HelpPayload>((emit) => {
     bot.help(async (context, next) => {
       await emit(

@@ -49,124 +49,121 @@ const handle = (bot: TelegrafBot) => {
     Stream.merge(bot.caption$),
     Stream.run(
       Sink.forEach(
-        flow(
-          (context) => {
-            if (context._tag === TelegrafBotPayload.HELP) {
-              return context
-                .replyWithMarkdown(
-                  [
-                    "Send me message with code blocks and playground links\\.",
-                    "For `@typescript/twoslash` api info [see here](https://github.com/microsoft/TypeScript-Website/tree/v2/packages/ts-twoslasher)\\.",
-                  ].join("\n"),
-                  {
-                    disable_web_page_preview: true,
-                    disable_notification: true,
-                  },
-                )
-                .pipe(Effect.either);
-            }
-            return pipe(
-              CS.fromPayload(context),
-              O.match({
-                onNone: () =>
-                  Effect.logInfo(
-                    `No payload in: "${JSON.stringify(context.message)}"`,
-                  ),
-                onSome: (codeBlocks) => {
-                  return Effect.gen(function* (_) {
-                    const [twoslashService, linkShortenerService] = yield* _(
-                      Effect.all([TS.TwoSlash, LS.LinkShortener]),
-                    );
+        flow((context) => {
+          if (context._tag === TelegrafBotPayload.HELP) {
+            return context
+              .replyWithMarkdown(
+                [
+                  "Send me message with code blocks and playground links\\.",
+                  "For `@typescript/twoslash` api info [see here](https://github.com/microsoft/TypeScript-Website/tree/v2/packages/ts-twoslasher)\\.",
+                ].join("\n"),
+                {
+                  disable_web_page_preview: true,
+                  disable_notification: true,
+                },
+              )
+              .pipe(Effect.either);
+          }
+          return pipe(
+            CS.fromPayload(context),
+            O.match({
+              onNone: () =>
+                Effect.logInfo(
+                  `No payload in: "${JSON.stringify(context.message)}"`,
+                ),
+              onSome: (codeBlocks) => {
+                return Effect.gen(function* (_) {
+                  const [twoslashService, linkShortenerService] = yield* _(
+                    Effect.all([TS.TwoSlash, LS.LinkShortener]),
+                  );
 
-                    const [errors, results] = pipe(
-                      codeBlocks,
-                      RA.filterMap(CS.code),
-                      RA.map((x, index) =>
-                        pipe(
-                          x,
-                          twoslashService.create,
-                          E.map((x) => ({
-                            id: index + 1,
-                            code: x.code,
-                            playgroundUrl: x.playgroundUrl,
-                            shortPlaygroundUrl: O.none<string>(),
-                          })),
-                        ),
+                  const [errors, results] = pipe(
+                    codeBlocks,
+                    RA.filterMap(CS.code),
+                    RA.map((x, index) =>
+                      pipe(
+                        x,
+                        twoslashService.create,
+                        E.map((x) => ({
+                          id: index + 1,
+                          code: x.code,
+                          playgroundUrl: x.playgroundUrl,
+                          shortPlaygroundUrl: O.none<string>(),
+                        })),
                       ),
-                      RA.separate,
-                    );
+                    ),
+                    RA.separate,
+                  );
 
+                  yield* _(
+                    errors,
+                    RA.map((x) => Effect.logError(x)),
+                    Effect.allWith({
+                      concurrency: "unbounded",
+                    }),
+                  );
+
+                  const getShortLinksFiber = yield* _(
+                    results,
+                    RA.map((x) =>
+                      pipe(
+                        linkShortenerService.shortenLink({
+                          url: x.playgroundUrl,
+                        }),
+                        Effect.map((_) => ({
+                          ...x,
+                          shortPlaygroundUrl: O.some(_.shortened),
+                        })),
+                        Effect.retry(Schedule.exponential("2 seconds", 3)),
+                        Effect.either,
+                      ),
+                    ),
+                    Effect.allWith({ concurrency: 3 }),
+                    Effect.fork,
+                  );
+
+                  const answerMessage = yield* _(
+                    context.replyWithMarkdown(AT.create(results), {
+                      disable_notification: true,
+                      disable_web_page_preview: true,
+                      reply_to_message_id: context.message.message_id,
+                    }),
+                    Effect.tap(Effect.log),
+                    Effect.either,
+                  );
+
+                  const [editErrors, editMessages] = yield* _(
+                    Fiber.join(getShortLinksFiber),
+                    Effect.map(RA.separate),
+                  );
+
+                  yield* _(
+                    editErrors,
+                    RA.map((x) => Effect.logError(x)),
+                    Effect.all,
+                  );
+
+                  if (answerMessage._tag === "Right") {
                     yield* _(
-                      errors,
-                      RA.map((x) => Effect.logError(x)),
-                      Effect.allWith({
-                        concurrency: "unbounded",
-                      }),
-                    );
-
-                    const getShortLinksFiber = yield* _(
-                      results,
-                      RA.map((x) =>
-                        pipe(
-                          linkShortenerService.shortenLink({
-                            url: x.playgroundUrl,
-                          }),
-                          Effect.map((_) => ({
-                            ...x,
-                            shortPlaygroundUrl: O.some(_.shortened),
-                          })),
-                          Effect.retry(Schedule.exponential("2 seconds", 3)),
-                          Effect.either,
-                        ),
+                      context.editMessageText(
+                        AT.create(editMessages),
+                        answerMessage.right.message_id,
+                        {
+                          disable_web_page_preview: true,
+                          parse_mode: "MarkdownV2",
+                        },
                       ),
-                      Effect.allWith({ concurrency: 3 }),
-                      Effect.fork,
-                    );
-
-                    const answerMessage = yield* _(
-                      context.replyWithMarkdown(AT.create(results), {
-                        disable_notification: true,
-                        disable_web_page_preview: true,
-                        reply_to_message_id: context.message.message_id,
-                      }),
                       Effect.tap(Effect.log),
                       Effect.either,
                     );
-
-                    const [editErrors, editMessages] = yield* _(
-                      Fiber.join(getShortLinksFiber),
-                      Effect.map(RA.separate),
-                    );
-
-                    yield* _(
-                      editErrors,
-                      RA.map((x) => Effect.logError(x)),
-                      Effect.all,
-                    );
-
-                    if (answerMessage._tag === "Right") {
-                      yield* _(
-                        context.editMessageText(
-                          AT.create(editMessages),
-                          answerMessage.right.message_id,
-                          {
-                            disable_web_page_preview: true,
-                            parse_mode: "MarkdownV2",
-                          },
-                        ),
-                        Effect.tap(Effect.log),
-                        Effect.either,
-                      );
-                    } else {
-                      yield* _(Effect.logError(answerMessage.left));
-                    }
-                  });
-                },
-              }),
-            );
-          },
-          (x) => x,
-        ),
+                  } else {
+                    yield* _(Effect.logError(answerMessage.left));
+                  }
+                });
+              },
+            }),
+          );
+        }),
       ),
     ),
   );
@@ -175,14 +172,13 @@ const handle = (bot: TelegrafBot) => {
 const program = Effect.gen(function* (_) {
   const telegrafService = yield* _(Telegraf.Telegraf);
   const { bot, launch } = yield* _(telegrafService.init());
-
-  const handlers = pipe(
+  yield* _(
     handle(bot),
     Effect.provide(TwoSlashLive),
     Effect.provide(LinkShortenerOptionsLive),
     Effect.catchAll(Effect.log),
+    launch,
   );
-  yield* _(launch(handlers));
 });
 
 const runnable = pipe(

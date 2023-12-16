@@ -1,7 +1,6 @@
 import * as _Telegraf from "telegraf";
 import { useNewReplies } from "telegraf/future";
 import {
-  Exit,
   Context,
   Data,
   Effect,
@@ -9,6 +8,7 @@ import {
   pipe,
   Schedule,
   Secret,
+  Fiber,
 } from "effect";
 import * as TelegrafBot from "./TelegrafBot.js";
 import * as TO from "./TelegrafOptions.js";
@@ -28,9 +28,9 @@ class TelegrafLaunchError extends Data.TaggedError(ErrorType.LAUNCH)<{
 }> {}
 
 const makeLive = pipe(
-  [TO.TelegrafOptions, TC.TelegrafConfig] as const,
+  { options: TO.TelegrafOptions, telegrafConfig: TC.TelegrafConfig } as const,
   Effect.all,
-  Effect.map(([options, telegrafConfig]) => {
+  Effect.map(({ options, telegrafConfig }) => {
     const init = () =>
       pipe(
         Effect.try({
@@ -38,7 +38,10 @@ const makeLive = pipe(
             new _Telegraf.Telegraf(Secret.value(telegrafConfig), options),
           catch: (cause) => new TelegrafInitError({ options, cause }),
         }),
-        Effect.map((x) => x.use(useNewReplies())),
+        Effect.tryMap({
+          try: (x) => x.use(useNewReplies()),
+          catch: (cause) => new TelegrafInitError({ options, cause }),
+        }),
         Effect.map((x) => ({
           bot: TelegrafBot.makeBot(x),
           launch: launch(x),
@@ -47,23 +50,11 @@ const makeLive = pipe(
 
     const launch =
       (bot: TelegrafBot._Bot) =>
-      <A>(effect: Effect.Effect<never, never, A>) => {
-        return pipe(
-          Effect.runPromiseExit(effect),
-          (x) => {
-            x.then(
-              Exit.match({
-                onFailure: (x) => {
-                  console.log("launch exit onFailure", x._tag);
-                  console.dir(x, { depth: 1000 });
-                },
-                onSuccess: () => {
-                  console.log("launch exit onSuccess");
-                },
-              }),
-            );
-          },
-          () =>
+      <A>(effect: Effect.Effect<never, never, A>) =>
+        Effect.gen(function* (_) {
+          const effectFiber = yield* _(Effect.fork(effect));
+
+          yield* _(
             Effect.tryPromise({
               try: () => {
                 console.log("launching");
@@ -71,9 +62,39 @@ const makeLive = pipe(
               },
               catch: (cause) => new TelegrafLaunchError({ cause }),
             }),
+          );
+
+          yield* _(Fiber.join(effectFiber));
+        }).pipe(
+          Effect.tapBoth({ onFailure: Effect.log, onSuccess: Effect.log }),
           Effect.retry(Schedule.exponential("1 seconds", 2)),
         );
-      };
+
+    // return pipe(
+    //   Effect.runPromiseExit(effect),
+    //   (x) => {
+    //     x.then(
+    //       Exit.match({
+    //         onFailure: (x) => {
+    //           console.log("launch exit onFailure", x._tag);
+    //           console.dir(x, { depth: 1000 });
+    //         },
+    //         onSuccess: () => {
+    //           console.log("launch exit onSuccess");
+    //         },
+    //       }),
+    //     );
+    //   },
+    //   () =>
+    //     Effect.tryPromise({
+    //       try: () => {
+    //         console.log("launching");
+    //         return bot.launch();
+    //       },
+    //       catch: (cause) => new TelegrafLaunchError({ cause }),
+    //     }),
+    //   Effect.retry(Schedule.exponential("1 seconds", 2)),
+    // );
 
     return { init } as const;
   }),
