@@ -1,5 +1,5 @@
-import { HttpClient as Http } from "@effect/platform";
-import { Context, Effect, Layer, pipe } from "effect";
+import * as Http from "@effect/platform/HttpClient";
+import { Context, Effect, Layer } from "effect";
 import { Schema } from "@effect/schema";
 import { LinkShortenerOptions } from "./LinkShortenerOptions.js";
 
