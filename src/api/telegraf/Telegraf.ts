@@ -58,7 +58,9 @@ const makeLive = pipe(
                     ` ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}:${now.getMilliseconds()} `
                   )
               );
-              return bot.launch();
+              return bot.launch({
+                dropPendingUpdates: true,
+              });
             },
             catch: (cause) => new TelegrafLaunchError({ cause }),
           });
