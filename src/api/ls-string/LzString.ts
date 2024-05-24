@@ -1,5 +1,5 @@
 import LZString from "lz-string";
-import { Either as E, pipe, Option as O, Data } from "effect";
+import { Either, pipe, Option , Data } from "effect";
 
 export enum ErrorType {
   DECOMPRESS = "DECOMPRESS::LzStringErrorType",
@@ -15,15 +15,15 @@ export class LzStringCompressError extends Data.TaggedError(
 
 export const decompress = (compressed: string) =>
   pipe(
-    E.try({
+    Either.try({
       try: () => LZString.decompressFromEncodedURIComponent(compressed),
       catch: (cause) => new LzStringDecompressError({ compressed, cause }),
     }),
-    E.map(O.fromNullable),
+    Either.map(Option.fromNullable),
   );
 
 export const compress = (uncompressed: string) =>
-  E.try({
+  Either.try({
     try: () => LZString.compressToEncodedURIComponent(uncompressed),
     catch: (cause) => new LzStringCompressError({ uncompressed, cause }),
   });

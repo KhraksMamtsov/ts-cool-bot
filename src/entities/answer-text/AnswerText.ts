@@ -1,4 +1,4 @@
-import { Option as O, pipe, ReadonlyArray as RA } from "effect";
+import { Option as O, pipe, Array } from "effect";
 
 export type AnswerText = string;
 
@@ -13,7 +13,7 @@ export type CreationArgs = ReadonlyArray<CreationArg>;
 export const create = (args: CreationArgs): AnswerText =>
   pipe(
     args,
-    RA.flatMap((x) => {
+    Array.flatMap((x) => {
       const firstLine = pipe(
         [
           O.some(`\\#${x.id}`),
@@ -24,11 +24,11 @@ export const create = (args: CreationArgs): AnswerText =>
               `\\+ [SHORT\\_PLAYGROUND](${shortPlaygroundUrl})`,
           ),
         ],
-        RA.getSomes,
-        RA.join(" "),
+        Array.getSomes,
+        Array.join(" "),
       );
 
       return [firstLine, "```typescript", x.code, "```"];
     }),
-    RA.join("\n"),
+    Array.join("\n"),
   );

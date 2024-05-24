@@ -3,19 +3,19 @@ import { Context, Effect, Layer } from "effect";
 import { Schema } from "@effect/schema";
 import { LinkShortenerOptions } from "./LinkShortenerOptions.js";
 
-const LinkShortenerRequestSchema = Schema.struct({ url: Schema.string });
-const LinkShortenerResponseSchema = Schema.struct({ shortened: Schema.string });
+const LinkShortenerRequestSchema = Schema.Struct({ url: Schema.String });
+const LinkShortenerResponseSchema = Schema.Struct({ shortened: Schema.String });
 
-const makeLinkShortener = Effect.gen(function* (_) {
-  const { baseUrl } = yield* _(LinkShortenerOptions);
-  const defaultClient = yield* _(Http.client.Client);
+const makeLinkShortener = Effect.gen(function* () {
+  const { baseUrl } = yield* LinkShortenerOptions;
+  const defaultClient = yield* Http.client.Client;
 
   const shortenLink = defaultClient.pipe(
     Http.client.mapRequest(Http.request.prependUrl(baseUrl)),
     Http.client.mapEffect(
-      Http.response.schemaBodyJson(LinkShortenerResponseSchema),
+      Http.response.schemaBodyJson(LinkShortenerResponseSchema)
     ),
-    Http.client.schemaFunction(LinkShortenerRequestSchema),
+    Http.client.schemaFunction(LinkShortenerRequestSchema)
   )(Http.request.post("/api/short"));
 
   return {
@@ -26,14 +26,12 @@ const makeLinkShortener = Effect.gen(function* (_) {
 export interface LinkShortenerService
   extends Effect.Effect.Success<typeof makeLinkShortener> {}
 
-export interface LinkShortener {
-  readonly _: unique symbol;
-}
-export const LinkShortener = Context.Tag<LinkShortener, LinkShortenerService>(
-  "@link-shortener/LinkShortener",
-);
+export class LinkShortener extends Effect.Tag("@link-shortener/LinkShortener")<
+  LinkShortener,
+  LinkShortenerService
+>() {}
 
 export const LinkShortenerLive = Layer.provide(
   Layer.effect(LinkShortener, makeLinkShortener),
-  Http.client.layer,
+  Http.client.layer
 );

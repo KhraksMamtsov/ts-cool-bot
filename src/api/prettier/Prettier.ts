@@ -1,20 +1,15 @@
 import * as _Prettier from "prettier";
-import { Effect, Context, Layer, pipe, Data } from "effect";
+import { Effect, Context, Layer, Data } from "effect";
 
-interface PrettierOptionsTag {
-  readonly _: unique symbol;
-}
-export interface PrettierOptions extends _Prettier.Options {}
-export const PrettierOptions = Context.Tag<PrettierOptionsTag, PrettierOptions>(
-  "@prettier/PrettierOptions",
-);
+export class PrettierOptions extends Context.Tag("@prettier/PrettierOptions")<
+  PrettierOptions,
+  _Prettier.Options
+>() {}
 
-interface Prettier {
-  readonly _: unique symbol;
-}
-export const Prettier = Context.Tag<Prettier, PrettierService>(
-  "@prettier/Prettier",
-);
+export class Prettier extends Effect.Tag("@prettier/Prettier")<
+  Prettier,
+  PrettierService
+>() {}
 export interface PrettierService
   extends Effect.Effect.Success<typeof makeLive> {}
 
@@ -24,11 +19,10 @@ export enum ErrorType {
 
 class PrettierFormatError extends Data.TaggedError(ErrorType.FORMAT)<{
   readonly source: string;
-  readonly options: PrettierOptions;
+  readonly options: _Prettier.Options;
 }> {}
 
-const makeLive = pipe(
-  PrettierOptions,
+const makeLive = PrettierOptions.pipe(
   Effect.map((options) => {
     const format = (source: string) =>
       Effect.tryPromise({
@@ -39,6 +33,6 @@ const makeLive = pipe(
     return {
       format,
     } as const;
-  }),
+  })
 );
 export const PrettierLive = Layer.effect(Prettier, makeLive);

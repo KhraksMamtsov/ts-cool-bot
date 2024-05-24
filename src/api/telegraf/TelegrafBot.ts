@@ -44,7 +44,7 @@ export class EditedTextPayload extends Data.TaggedClass(
 
 export type TelegrafBot = ReturnType<typeof makeBot>;
 export const makeBot = (bot: _Bot) => {
-  const text$ = Stream.async<never, never, TextPayload>((emit) => {
+  const text$ = Stream.async<TextPayload>((emit) => {
     bot.on(TF.message("text"), async (context, next) => {
       await emit(
         Effect.succeed(
@@ -60,7 +60,7 @@ export const makeBot = (bot: _Bot) => {
       return await next();
     });
   });
-  const caption$ = Stream.async<never, never, CaptionPayload>((emit) => {
+  const caption$ = Stream.async<CaptionPayload>((emit) => {
     bot.on(TF.message("caption"), async (context, next) => {
       await emit(
         Effect.succeed(
@@ -76,7 +76,7 @@ export const makeBot = (bot: _Bot) => {
       return await next();
     });
   });
-  const help$ = Stream.async<never, never, HelpPayload>((emit) => {
+  const help$ = Stream.async<HelpPayload>((emit) => {
     bot.help(async (context, next) => {
       await emit(
         Effect.succeed(
@@ -94,7 +94,7 @@ export const makeBot = (bot: _Bot) => {
     });
   });
 
-  const editedText$ = Stream.async<never, never, EditedTextPayload>((emit) => {
+  const editedText$ = Stream.async< EditedTextPayload>((emit) => {
     bot.on(TF.editedMessage("text"), async (context, next) => {
       await emit(
         Effect.succeed(

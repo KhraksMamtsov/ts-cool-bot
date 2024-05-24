@@ -1,7 +1,7 @@
-import { Either as E, identity } from "effect";
+import { Either, identity } from "effect";
 
 export const stringify = <A>(a: A) =>
-  E.try({
+  Either.try({
     try: () => JSON.stringify(a),
     catch: identity,
   });

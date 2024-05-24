@@ -8,7 +8,7 @@ import {
   Layer,
   Option as O,
   pipe,
-  ReadonlyArray as RA,
+  Array,
   Schedule,
   Sink,
   Stream,
@@ -33,13 +33,13 @@ const TwoSlashLive = pipe(
         noStaticSemanticInfo: true,
         noErrorValidation: true,
       },
-    }),
-  ),
+    })
+  )
 );
 
 const LinkShortenerOptionsLive = pipe(
   LS.LinkShortenerLive,
-  Layer.provide(options({ baseUrl: "https://tsplay.dev" })),
+  Layer.provide(options({ baseUrl: "https://tsplay.dev" }))
 );
 
 const handle = (bot: TelegrafBot) => {
@@ -58,9 +58,9 @@ const handle = (bot: TelegrafBot) => {
                   "For `@typescript/twoslash` api info [see here](https://github.com/microsoft/TypeScript-Website/tree/v2/packages/ts-twoslasher)\\.",
                 ].join("\n"),
                 {
-                  disable_web_page_preview: true,
+                  // disable_web_page_preview: true,
                   disable_notification: true,
-                },
+                }
               )
               .pipe(Effect.either);
           }
@@ -69,18 +69,17 @@ const handle = (bot: TelegrafBot) => {
             O.match({
               onNone: () =>
                 Effect.logInfo(
-                  `No payload in: "${JSON.stringify(context.message)}"`,
+                  `No payload in: "${JSON.stringify(context.message)}"`
                 ),
               onSome: (codeBlocks) => {
-                return Effect.gen(function* (_) {
-                  const [twoslashService, linkShortenerService] = yield* _(
-                    Effect.all([TS.TwoSlash, LS.LinkShortener]),
-                  );
+                return Effect.gen(function* () {
+                  const [twoslashService, linkShortenerService] =
+                    yield* Effect.all([TS.TwoSlash, LS.LinkShortener]);
 
                   const [errors, results] = pipe(
                     codeBlocks,
-                    RA.filterMap(CS.code),
-                    RA.map((x, index) =>
+                    Array.filterMap(CS.code),
+                    Array.map((x, index) =>
                       pipe(
                         x,
                         twoslashService.create,
@@ -89,23 +88,23 @@ const handle = (bot: TelegrafBot) => {
                           code: x.code,
                           playgroundUrl: x.playgroundUrl,
                           shortPlaygroundUrl: O.none<string>(),
-                        })),
-                      ),
+                        }))
+                      )
                     ),
-                    RA.separate,
+                    Array.separate
                   );
 
-                  yield* _(
+                  yield* pipe(
                     errors,
-                    RA.map((x) => Effect.logError(x)),
+                    Array.map((x) => Effect.logError(x)),
                     Effect.allWith({
                       concurrency: "unbounded",
-                    }),
+                    })
                   );
 
-                  const getShortLinksFiber = yield* _(
+                  const getShortLinksFiber = yield* pipe(
                     results,
-                    RA.map((x) =>
+                    Array.map((x) =>
                       pipe(
                         linkShortenerService.shortenLink({
                           url: x.playgroundUrl,
@@ -115,77 +114,73 @@ const handle = (bot: TelegrafBot) => {
                           shortPlaygroundUrl: O.some(_.shortened),
                         })),
                         Effect.retry(Schedule.exponential("2 seconds", 3)),
-                        Effect.either,
-                      ),
+                        Effect.either
+                      )
                     ),
                     Effect.allWith({ concurrency: 3 }),
-                    Effect.fork,
+                    Effect.fork
                   );
 
-                  const answerMessage = yield* _(
+                  const answerMessage = yield* pipe(
                     context.replyWithMarkdown(AT.create(results), {
                       disable_notification: true,
-                      disable_web_page_preview: true,
-                      reply_to_message_id: context.message.message_id,
+                      // disable_web_page_preview: true,
+                      // reply_to_message_id: context.message.message_id,
                     }),
                     Effect.tap(Effect.log),
-                    Effect.either,
+                    Effect.either
                   );
 
-                  const [editErrors, editMessages] = yield* _(
+                  const [editErrors, editMessages] = yield* pipe(
                     Fiber.join(getShortLinksFiber),
-                    Effect.map(RA.separate),
+                    Effect.map(Array.separate)
                   );
 
-                  yield* _(
+                  yield* pipe(
                     editErrors,
-                    RA.map((x) => Effect.logError(x)),
-                    Effect.all,
+                    Array.map((x) => Effect.logError(x)),
+                    Effect.all
                   );
 
                   if (answerMessage._tag === "Right") {
-                    yield* _(
+                    yield* pipe(
                       context.editMessageText(
                         AT.create(editMessages),
                         answerMessage.right.message_id,
                         {
-                          disable_web_page_preview: true,
+                          // disable_web_page_preview: true,
                           parse_mode: "MarkdownV2",
-                        },
+                        }
                       ),
                       Effect.tap(Effect.log),
-                      Effect.either,
+                      Effect.either
                     );
                   } else {
-                    yield* _(Effect.logError(answerMessage.left));
+                    yield* pipe(Effect.logError(answerMessage.left));
                   }
                 });
               },
-            }),
+            })
           );
-        }),
-      ),
-    ),
+        })
+      )
+    )
   );
 };
 
-const program = Effect.gen(function* (_) {
-  const telegrafService = yield* _(Telegraf.Telegraf);
-  const { bot, launch } = yield* _(telegrafService.init());
-  yield* _(
-    handle(bot),
+const program = Effect.gen(function* () {
+  const telegrafService = yield* Telegraf.Telegraf;
+  const { bot, launch } = yield* telegrafService.init();
+  yield* handle(bot).pipe(
     Effect.provide(TwoSlashLive),
     Effect.provide(LinkShortenerOptionsLive),
     Effect.catchAll(Effect.log),
-    launch,
+    Effect.scoped,
+    launch
   );
 });
 
-const runnable = pipe(
-  //
-  program,
-  Effect.provide(TelegrafLive),
-);
+const runnable = program.pipe(Effect.scoped, Effect.provide(TelegrafLive));
 
 Effect.runPromiseExit(runnable).then(
   Exit.match({
@@ -196,7 +191,7 @@ Effect.runPromiseExit(runnable).then(
     onSuccess: () => {
       console.log("runPromiseExit exit onSuccess");
     },
-  }),
+  })
 );
 
 const port = process.env["PORT"];

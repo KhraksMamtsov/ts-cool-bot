@@ -1,12 +1,11 @@
 import * as _Twoslash from "@typescript/twoslash";
 import {
-  Context,
   Data,
   Effect,
   Either as E,
   Layer,
   pipe,
-  ReadonlyArray as RA,
+  Array,
   String as S,
 } from "effect";
 import * as TSO from "./TwoSlashOptions.js";
@@ -18,12 +17,12 @@ function render(result: _Twoslash.TwoSlashReturn) {
 
   const errorLines = pipe(
     result.errors,
-    RA.map((x) => {
+    Array.map((x) => {
       const coords = pipe(
         [x.line, x.character],
-        RA.filter((x: number | undefined): x is number => x !== undefined),
-        RA.map((x) => x.toString()),
-        RA.join(":"),
+        Array.filter((x) => x !== undefined),
+        Array.map((x) => x.toString()),
+        Array.join(":")
       );
 
       let identifier = "";
@@ -44,16 +43,16 @@ function render(result: _Twoslash.TwoSlashReturn) {
         ([first, ...rest]) =>
           pipe(
             rest,
-            RA.map((x) => `// ${x}`),
-            RA.prepend(`// TS${x.code} ${coords} "${identifier}": ${first}`),
+            Array.map((x) => `// ${x}`),
+            Array.prepend(`// TS${x.code} ${coords} "${identifier}": ${first}`)
           ),
         (lineContent) => ({
           type: "error" as const,
           lineNumber: x.line === undefined ? undefined : x.line + 1,
           lineContent,
-        }),
+        })
       );
-    }),
+    })
   );
 
   const queriesLines = result.queries
@@ -62,7 +61,8 @@ function render(result: _Twoslash.TwoSlashReturn) {
       type: "query" as const,
       lineNumber: q.line,
       lineContent: [
-        `//${Array(q.offset - twoslashQuerySign.length + 1)
+        `//${globalThis
+          .Array(q.offset - twoslashQuerySign.length + 1)
           .fill(" ")
           .join("")}${twoslashQuerySign}${q.text}`,
       ],
@@ -70,13 +70,13 @@ function render(result: _Twoslash.TwoSlashReturn) {
 
   const [unindexedLines, indexedLines] = pipe(
     [...queriesLines, ...errorLines],
-    RA.map((x) => {
+    Array.map((x) => {
       const { lineNumber } = x;
       return lineNumber === undefined
         ? E.left({ ...x, lineNumber })
         : E.right({ ...x, lineNumber });
     }),
-    RA.separate,
+    Array.separate
   );
 
   indexedLines
@@ -92,8 +92,7 @@ function render(result: _Twoslash.TwoSlashReturn) {
   };
 }
 
-const makeLive = pipe(
-  TSO.TwoSlashOptions,
+const makeLive = TSO.TwoSlashOptions.pipe(
   Effect.map((options) => {
     const create = (code: string) =>
       pipe(
@@ -101,21 +100,19 @@ const makeLive = pipe(
           try: () => _Twoslash.twoslasher(code, "tsx", options),
           catch: (x) => new TwoslashCreationError({ options, code, case: x }),
         }),
-        E.map(render),
+        E.map(render)
       );
 
     return { create } as const;
-  }),
+  })
 );
 
-interface TwoSlash {
-  readonly _: unique symbol;
-}
 export interface TwoSlashService
   extends Effect.Effect.Success<typeof makeLive> {}
-export const TwoSlash = Context.Tag<TwoSlash, TwoSlashService>(
-  "@twoslash/TwoSlash",
-);
+export class TwoSlash extends Effect.Tag("@twoslash/TwoSlash")<
+  TwoSlash,
+  TwoSlashService
+>() {}
 export const TwoSlashLive = Layer.effect(TwoSlash, makeLive);
 
 export enum ErrorType {
@@ -123,7 +120,7 @@ export enum ErrorType {
 }
 
 export class TwoslashCreationError extends Data.TaggedError(
-  ErrorType.CREATION,
+  ErrorType.CREATION
 )<{
   readonly case: unknown;
   readonly options: TSO.TwoSlashOptionsService;

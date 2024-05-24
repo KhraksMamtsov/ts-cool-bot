@@ -4,7 +4,7 @@ import {
   pipe,
   Option as O,
   String as S,
-  ReadonlyArray as RA,
+  Array,
   flow,
 } from "effect";
 import * as LzString from "../../api/ls-string/LzString.js";
@@ -44,7 +44,7 @@ export const code = pipe(
       pipe(
         x.compressedUrl,
         S.match(PLAYGROUND_REGEX),
-        O.flatMap(RA.get(3)),
+        O.flatMap(Array.get(3)),
         O.flatMap(flow(LzString.decompress, O.getRight, O.flatten)),
       ),
   }),
@@ -107,8 +107,8 @@ export const fromPayload = (payload: TextPayload | CaptionPayload) => {
     O.fromNullable,
     O.flatMap(
       flow(
-        RA.filterMap(fromSourceFor),
-        RA.match({
+        Array.filterMap(fromSourceFor),
+        Array.match({
           onEmpty: O.none,
           onNonEmpty: O.some,
         }),

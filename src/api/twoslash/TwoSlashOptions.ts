@@ -1,16 +1,12 @@
 import * as _Twoslash from "@typescript/twoslash";
-import { Context, Layer } from "effect";
-
-export interface TwoSlashOptions {
-  readonly _: unique symbol;
-}
+import { Effect, Layer } from "effect";
 
 export interface TwoSlashOptionsService extends _Twoslash.TwoSlashOptions {}
 
-export const TwoSlashOptions = Context.Tag<
+export class TwoSlashOptions extends Effect.Tag("@twoslash/TwoSlashOptions")<
   TwoSlashOptions,
   TwoSlashOptionsService
->("@twoslash/TwoSlashOptions");
+>() {}
 
 export const options = (options: TwoSlashOptionsService) =>
   Layer.succeed(TwoSlashOptions, TwoSlashOptions.of(options));
