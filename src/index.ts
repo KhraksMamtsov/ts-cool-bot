@@ -124,7 +124,7 @@ const handle = (bot: TelegrafBot) => {
                   const answerMessage = yield* pipe(
                     context.replyWithMarkdown(AT.create(results), {
                       disable_notification: true,
-                      // disable_web_page_preview: true,
+                      link_preview_options: { is_disabled: true },
                       // reply_to_message_id: context.message.message_id,
                     }),
                     Effect.tap(Effect.log),
@@ -149,6 +149,7 @@ const handle = (bot: TelegrafBot) => {
                         answerMessage.right.message_id,
                         {
                           // disable_web_page_preview: true,
+                          link_preview_options: { is_disabled: true },
                           parse_mode: "MarkdownV2",
                         }
                       ),
