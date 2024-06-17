@@ -1,6 +1,6 @@
 import * as _Telegraf from "telegraf";
 import { useNewReplies } from "telegraf/future";
-import { Data, Effect, Layer, pipe, Schedule, Secret, Fiber } from "effect";
+import { Data, Effect, Layer, pipe, Schedule, Redacted, Fiber } from "effect";
 import * as TelegrafBot from "./TelegrafBot.js";
 import * as TO from "./TelegrafOptions.js";
 import * as TC from "./TelegrafConfig.js";
@@ -27,7 +27,7 @@ const makeLive = pipe(
       pipe(
         Effect.try({
           try: () =>
-            new _Telegraf.Telegraf(Secret.value(telegrafConfig), options),
+            new _Telegraf.Telegraf(Redacted.value(telegrafConfig), options),
           catch: (cause) => new TelegrafInitError({ options, cause }),
         }),
         Effect.acquireRelease((x) => Effect.succeed(() => x.stop())),
