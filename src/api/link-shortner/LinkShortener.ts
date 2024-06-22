@@ -1,5 +1,9 @@
-import * as Http from "@effect/platform/HttpClient";
-import { Context, Effect, Layer } from "effect";
+import {
+  HttpClient,
+  HttpClientRequest,
+  HttpClientResponse,
+} from "@effect/platform";
+import { Effect, Layer } from "effect";
 import { Schema } from "@effect/schema";
 import { LinkShortenerOptions } from "./LinkShortenerOptions.js";
 
@@ -8,15 +12,18 @@ const LinkShortenerResponseSchema = Schema.Struct({ shortened: Schema.String });
 
 const makeLinkShortener = Effect.gen(function* () {
   const { baseUrl } = yield* LinkShortenerOptions;
-  const defaultClient = yield* Http.client.Client;
+  const defaultClient = yield* HttpClient.HttpClient;
+  HttpClient.map;
+  HttpClientRequest.prependUrl;
+  HttpClientResponse.schemaBodyJson;
 
   const shortenLink = defaultClient.pipe(
-    Http.client.mapRequest(Http.request.prependUrl(baseUrl)),
-    Http.client.mapEffect(
-      Http.response.schemaBodyJson(LinkShortenerResponseSchema)
+    HttpClient.mapRequest(HttpClientRequest.prependUrl(baseUrl)),
+    HttpClient.mapEffect(
+      HttpClientResponse.schemaBodyJson(LinkShortenerResponseSchema)
     ),
-    Http.client.schemaFunction(LinkShortenerRequestSchema)
-  )(Http.request.post("/api/short"));
+    HttpClient.schemaFunction(LinkShortenerRequestSchema)
+  )(HttpClientRequest.post("/api/short"));
 
   return {
     shortenLink,
@@ -33,5 +40,5 @@ export class LinkShortener extends Effect.Tag("@link-shortener/LinkShortener")<
 
 export const LinkShortenerLive = Layer.provide(
   Layer.effect(LinkShortener, makeLinkShortener),
-  Http.client.layer
+  HttpClient.layer
 );
