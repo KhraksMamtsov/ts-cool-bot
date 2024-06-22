@@ -13,9 +13,6 @@ const LinkShortenerResponseSchema = Schema.Struct({ shortened: Schema.String });
 const makeLinkShortener = Effect.gen(function* () {
   const { baseUrl } = yield* LinkShortenerOptions;
   const defaultClient = yield* HttpClient.HttpClient;
-  HttpClient.map;
-  HttpClientRequest.prependUrl;
-  HttpClientResponse.schemaBodyJson;
 
   const shortenLink = defaultClient.pipe(
     HttpClient.mapRequest(HttpClientRequest.prependUrl(baseUrl)),
