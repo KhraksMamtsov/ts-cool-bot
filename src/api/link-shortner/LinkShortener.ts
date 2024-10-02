@@ -2,6 +2,7 @@ import {
   HttpClient,
   HttpClientRequest,
   HttpClientResponse,
+  FetchHttpClient
 } from "@effect/platform";
 import { Effect, Layer } from "effect";
 import { Schema } from "@effect/schema";
@@ -37,5 +38,5 @@ export class LinkShortener extends Effect.Tag("@link-shortener/LinkShortener")<
 
 export const LinkShortenerLive = Layer.provide(
   Layer.effect(LinkShortener, makeLinkShortener),
-  HttpClient.layer
+  FetchHttpClient.layer
 );
