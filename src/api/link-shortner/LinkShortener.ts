@@ -2,26 +2,35 @@ import {
   HttpClient,
   HttpClientRequest,
   HttpClientResponse,
-  FetchHttpClient
+  FetchHttpClient,
 } from "@effect/platform";
-import { Effect, Layer } from "effect";
-import { Schema } from "@effect/schema";
+import { Schema, Effect, Layer } from "effect";
 import { LinkShortenerOptions } from "./LinkShortenerOptions.js";
 
-const LinkShortenerRequestSchema = Schema.Struct({ url: Schema.String });
-const LinkShortenerResponseSchema = Schema.Struct({ shortened: Schema.String });
+class LinkShortenerRequestSchema extends Schema.Class<LinkShortenerRequestSchema>(
+  "LinkShortenerRequestSchema"
+)({ url: Schema.String }) {}
+
+class LinkShortenerResponseSchema extends Schema.Class<LinkShortenerResponseSchema>(
+  "LinkShortenerResponseSchema"
+)({ shortened: Schema.String }) {}
 
 const makeLinkShortener = Effect.gen(function* () {
   const { baseUrl } = yield* LinkShortenerOptions;
   const defaultClient = yield* HttpClient.HttpClient;
 
-  const shortenLink = defaultClient.pipe(
-    HttpClient.mapRequest(HttpClientRequest.prependUrl(baseUrl)),
-    HttpClient.mapEffect(
-      HttpClientResponse.schemaBodyJson(LinkShortenerResponseSchema)
-    ),
-    HttpClient.schemaFunction(LinkShortenerRequestSchema)
-  )(HttpClientRequest.post("/api/short"));
+  const withBody = HttpClientRequest.schemaBodyJson(LinkShortenerRequestSchema);
+  const req = HttpClientRequest.post(new URL("/api/short", baseUrl));
+
+  const shortenLink = (args: LinkShortenerRequestSchema) => {
+    return withBody(args)(req).pipe(
+      Effect.flatMap(defaultClient.execute),
+      Effect.flatMap(HttpClientResponse.filterStatusOk),
+      Effect.flatMap(
+        HttpClientResponse.schemaBodyJson(LinkShortenerResponseSchema)
+      )
+    );
+  };
 
   return {
     shortenLink,
