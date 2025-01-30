@@ -3,9 +3,9 @@ import * as TF from "telegraf/filters";
 import type { Convenience } from "telegraf/types";
 import type { Message, Update } from "@telegraf/types";
 import * as _Telegraf from "telegraf";
+import * as Telegraf from "./Telegraf.js";
 
 export type UpdateTextContext = _Telegraf.Context<Update>;
-export type _Bot = _Telegraf.Telegraf<UpdateTextContext>;
 
 export enum TelegrafBotPayload {
   TEXT = "TEXT::TelegrafBotPayload",
@@ -21,7 +21,7 @@ export class TextPayload extends Data.TaggedClass(TelegrafBotPayload.TEXT)<{
 }> {}
 
 export class CaptionPayload extends Data.TaggedClass(
-  TelegrafBotPayload.CAPTION,
+  TelegrafBotPayload.CAPTION
 )<{
   readonly message: Update.New & Update.NonChannel & Message.CaptionableMessage;
   readonly replyWithMarkdown: ReturnType<typeof replyWithMarkdown>;
@@ -35,89 +35,84 @@ export class HelpPayload extends Data.TaggedClass(TelegrafBotPayload.HELP)<{
 }> {}
 
 export class EditedTextPayload extends Data.TaggedClass(
-  TelegrafBotPayload.EDITED_TEXT,
+  TelegrafBotPayload.EDITED_TEXT
 )<{
   readonly message: Update.Edited & Update.NonChannel & Message.TextMessage;
   readonly replyWithMarkdown: ReturnType<typeof replyWithMarkdown>;
   readonly editMessageText: ReturnType<typeof editMessageText>;
 }> {}
 
-export type TelegrafBot = ReturnType<typeof makeBot>;
-export const makeBot = (bot: _Bot) => {
-  const text$ = Stream.async<TextPayload>((emit) => {
-    bot.on(TF.message("text"), async (context, next) => {
-      await emit(
-        Effect.succeed(
-          Chunk.of(
+export class TelegrafBot extends Effect.Service<TelegrafBot>()(
+  "@telegraf/TelegrafClient",
+  {
+    effect: Effect.gen(function* () {
+      const TelegrafClient = yield* Telegraf.Telegraf;
+      console.log("TelegrafBot");
+      const text$ = Stream.async<TextPayload>((emit) => {
+        console.log("text$");
+        TelegrafClient.on(TF.message("text"), async (context, next) => {
+          console.log(context.message);
+          await emit.single(
             new TextPayload({
               message: context.message,
               replyWithMarkdown: replyWithMarkdown(context),
               editMessageText: editMessageText(context),
-            }),
-          ),
-        ),
+            })
+          );
+          return await next();
+        });
+      });
+      const caption$ = Stream.asyncPush<CaptionPayload>((emit) =>
+        Effect.sync(() => {
+          console.log(222);
+          TelegrafClient.on(TF.message("caption"), async (context, next) => {
+            await emit.single(
+              new CaptionPayload({
+                message: context.message,
+                replyWithMarkdown: replyWithMarkdown(context),
+                editMessageText: editMessageText(context),
+              })
+            );
+            return await next();
+          });
+        })
       );
-      return await next();
-    });
-  });
-  const caption$ = Stream.async<CaptionPayload>((emit) => {
-    bot.on(TF.message("caption"), async (context, next) => {
-      await emit(
-        Effect.succeed(
-          Chunk.of(
-            new CaptionPayload({
-              message: context.message,
-              replyWithMarkdown: replyWithMarkdown(context),
-              editMessageText: editMessageText(context),
-            }),
-          ),
-        ),
-      );
-      return await next();
-    });
-  });
-  const help$ = Stream.async<HelpPayload>((emit) => {
-    bot.help(async (context, next) => {
-      await emit(
-        Effect.succeed(
-          Chunk.of(
+      const help$ = Stream.async<HelpPayload>((emit) => {
+        TelegrafClient.help(async (context, next) => {
+          await emit.single(
             new HelpPayload({
               message: context.message,
               replyWithMarkdown: replyWithMarkdown(context),
               editMessageText: editMessageText(context),
-            }),
-          ),
-        ),
-      );
+            })
+          );
 
-      return await next();
-    });
-  });
+          return await next();
+        });
+      });
 
-  const editedText$ = Stream.async< EditedTextPayload>((emit) => {
-    bot.on(TF.editedMessage("text"), async (context, next) => {
-      await emit(
-        Effect.succeed(
-          Chunk.of(
+      const editedText$ = Stream.async<EditedTextPayload>((emit) => {
+        TelegrafClient.on(TF.editedMessage("text"), async (context, next) => {
+          await emit.single(
             new EditedTextPayload({
               message: context.update.edited_message,
               replyWithMarkdown: replyWithMarkdown(context),
               editMessageText: editMessageText(context),
-            }),
-          ),
-        ),
-      );
-      return await next();
-    });
-  });
+            })
+          );
+          return await next();
+        });
+      });
 
-  return {
-    text$,
-    caption$,
-    editedText$,
-    help$,
-  } as const;
-};
+      return {
+        text$,
+        caption$,
+        editedText$,
+        help$,
+      } as const;
+    }),
+  }
+) {}
 
 export enum CtxErrorType {
   REPLY_WITH_MARKDOWN = "REPLY_WITH_MARKDOWN::TelegrafCtxErrorType",
@@ -125,14 +120,14 @@ export enum CtxErrorType {
 }
 
 class TelegrafCtxReplyWithMarkdownError extends Data.TaggedError(
-  CtxErrorType.REPLY_WITH_MARKDOWN,
+  CtxErrorType.REPLY_WITH_MARKDOWN
 )<{
   readonly error: unknown;
   readonly markdown: string;
   readonly extra: Convenience.ExtraReplyMessage;
 }> {}
 class TelegrafCtxEditMessageTextError extends Data.TaggedError(
-  CtxErrorType.EDIT_MESSAGE_TEXT,
+  CtxErrorType.EDIT_MESSAGE_TEXT
 )<{
   readonly error: unknown;
   readonly markdown: string;
@@ -153,7 +148,7 @@ export const editMessageText =
   (
     markdown: string,
     messageId: number,
-    extra: Convenience.ExtraEditMessageText,
+    extra: Convenience.ExtraEditMessageText
   ) =>
     Effect.tryPromise({
       try: () =>
@@ -162,7 +157,7 @@ export const editMessageText =
           messageId,
           undefined,
           markdown,
-          extra,
+          extra
         ),
       catch: (error) =>
         new TelegrafCtxEditMessageTextError({ error, markdown, extra }),

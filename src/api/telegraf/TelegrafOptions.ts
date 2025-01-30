@@ -11,5 +11,6 @@ export class TelegrafOptions extends Effect.Tag("@telegraf/TelegrafOptions")<
   TelegrafOptions,
   TelegrafOptionsService
 >() {}
+
 export const options = (options: TelegrafOptionsService) =>
   Layer.succeed(TelegrafOptions, TelegrafOptions.of(options));

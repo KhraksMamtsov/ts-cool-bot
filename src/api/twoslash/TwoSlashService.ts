@@ -3,10 +3,10 @@ import {
   Data,
   Effect,
   Either as E,
-  Layer,
   pipe,
   Array,
   String as S,
+  Schema,
 } from "effect";
 import * as TSO from "./TwoSlashOptions.js";
 
@@ -88,12 +88,23 @@ function render(result: _Twoslash.TwoSlashReturn) {
 
   return {
     code: lines.join("\n").trim() + "\n" + unindexedLines.join("\n"),
-    playgroundUrl: result.playgroundURL,
+    playgroundUrl: new URL(result.playgroundURL),
   };
 }
 
-const makeLive = TSO.TwoSlashOptions.pipe(
-  Effect.map((options) => {
+
+export class TwoSlash extends Effect.Service<TwoSlash>()("@twoslash/TwoSlash", {
+  dependencies: [
+    TSO.options({
+      defaultOptions: {
+        noStaticSemanticInfo: true,
+        noErrorValidation: true,
+      },
+    }),
+  ],
+  effect: Effect.gen(function* () {
+    const options = yield* TSO.TwoSlashOptions;
+
     const create = (code: string) =>
       pipe(
         E.try({
@@ -104,16 +115,8 @@ const makeLive = TSO.TwoSlashOptions.pipe(
       );
 
     return { create } as const;
-  })
-);
-
-export interface TwoSlashService
-  extends Effect.Effect.Success<typeof makeLive> {}
-export class TwoSlash extends Effect.Tag("@twoslash/TwoSlash")<
-  TwoSlash,
-  TwoSlashService
->() {}
-export const TwoSlashLive = Layer.effect(TwoSlash, makeLive);
+  }),
+}) {}
 
 export enum ErrorType {
   CREATION = "CREATION::TwoslashErrorType",

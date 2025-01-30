@@ -29,7 +29,7 @@ export class RawCode extends Data.TaggedClass(CodeSourceType.RAW)<{
   readonly rawCode: string;
 }> {}
 export class CompressedUrl extends Data.TaggedClass(
-  CodeSourceType.COMPRESSED_URL,
+  CodeSourceType.COMPRESSED_URL
 )<{
   readonly compressedUrl: string;
 }> {}
@@ -45,9 +45,9 @@ export const code = pipe(
         x.compressedUrl,
         S.match(PLAYGROUND_REGEX),
         O.flatMap(Array.get(3)),
-        O.flatMap(flow(LzString.decompress, O.getRight, O.flatten)),
+        O.flatMap(flow(LzString.decompress, O.getRight, O.flatten))
       ),
-  }),
+  })
 );
 
 const discriminator = "type" as const;
@@ -68,25 +68,25 @@ const fromText = (text: string) =>
         url,
         String.getSubstringFrom(text),
         (compressedUrl) => new CompressedUrl({ compressedUrl }),
-        O.some,
-      ),
+        O.some
+      )
     ),
     matchType("pre", (pre) => {
       return ![undefined, "ts", "typescript", "js", "javascript"].includes(
-        pre.language?.toLowerCase(),
+        pre.language?.toLowerCase()
       )
         ? O.none()
         : pipe(
             pre,
             String.getSubstringFrom(text),
             (rawCode) => new RawCode({ rawCode }),
-            O.some,
+            O.some
           );
     }),
     matchType("text_link", (text_link) =>
-      pipe(new CompressedUrl({ compressedUrl: text_link.url }), O.some),
+      pipe(new CompressedUrl({ compressedUrl: text_link.url }), O.some)
     ),
-    Match.orElse((_) => O.none()),
+    Match.orElse((_) => O.none())
   );
 
 export const fromPayload = (payload: TextPayload | CaptionPayload) => {
@@ -111,8 +111,8 @@ export const fromPayload = (payload: TextPayload | CaptionPayload) => {
         Array.match({
           onEmpty: O.none,
           onNonEmpty: O.some,
-        }),
-      ),
-    ),
+        })
+      )
+    )
   );
 };

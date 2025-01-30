@@ -5,8 +5,8 @@ export type AnswerText = string;
 export interface CreationArg {
   readonly id: number;
   readonly code: string;
-  readonly playgroundUrl: string;
-  readonly shortPlaygroundUrl: O.Option<string>;
+  readonly playgroundUrl: URL;
+  readonly shortPlaygroundUrl: O.Option<URL>;
 }
 
 export type CreationArgs = ReadonlyArray<CreationArg>;

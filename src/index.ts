@@ -1,4 +1,5 @@
-import * as Telegraf from "./api/telegraf/Telegraf.js";
+import * as TGF from "./api/telegraf/Telegraf.js";
+import { runMain } from "@effect/platform-node/NodeRuntime";
 import {
   Effect,
   Either as E,
@@ -15,41 +16,30 @@ import {
 } from "effect";
 import * as CS from "./entities/code-source/CodeSource.js";
 import * as TS from "./api/twoslash/TwoSlashService.js";
-import type { TelegrafBot } from "./api/telegraf/TelegrafBot.js";
-import * as TO from "./api/telegraf/TelegrafOptions.js";
+import { TelegrafBot } from "./api/telegraf/TelegrafBot.js";
 import * as TSO from "./api/twoslash/TwoSlashOptions.js";
 import * as LS from "./api/link-shortner/LinkShortener.js";
-import { options } from "./api/link-shortner/LinkShortenerOptions.js";
 import * as AT from "./entities/answer-text/AnswerText.js";
 import { TelegrafBotPayload } from "./api/telegraf/TelegrafBot.js";
 import * as http from "node:http";
+import * as TelegrafOptions from "./api/telegraf/TelegrafOptions.js";
 
-const TelegrafLive = pipe(Telegraf.TelegrafLive, Layer.provide(TO.options({})));
-const TwoSlashLive = pipe(
-  TS.TwoSlashLive,
-  Layer.provide(
-    TSO.options({
-      defaultOptions: {
-        noStaticSemanticInfo: true,
-        noErrorValidation: true,
-      },
-    })
-  )
-);
+const handle = Effect.gen(function* () {
+  console.log("handle");
+  const bot = yield* TelegrafBot;
+  const twoslashService = yield* TS.TwoSlash;
+  const linkShortenerService = yield* LS.LinkShortener;
 
-const LinkShortenerOptionsLive = pipe(
-  LS.LinkShortenerLive,
-  Layer.provide(options({ baseUrl: "https://tsplay.dev" }))
-);
-
-const handle = (bot: TelegrafBot) => {
-  return pipe(
+  return yield* pipe(
     bot.text$,
     Stream.merge(bot.help$),
     Stream.merge(bot.caption$),
     Stream.run(
       Sink.forEach(
         flow((context) => {
+          // if (true === true) {
+          //   throw "123";
+          // }
           if (context._tag === TelegrafBotPayload.HELP) {
             return context
               .replyWithMarkdown(
@@ -73,9 +63,6 @@ const handle = (bot: TelegrafBot) => {
                 ),
               onSome: (codeBlocks) => {
                 return Effect.gen(function* () {
-                  const [twoslashService, linkShortenerService] =
-                    yield* Effect.all([TS.TwoSlash, LS.LinkShortener]);
-
                   const [errors, results] = pipe(
                     codeBlocks,
                     Array.filterMap(CS.code),
@@ -87,7 +74,7 @@ const handle = (bot: TelegrafBot) => {
                           id: index + 1,
                           code: x.code,
                           playgroundUrl: x.playgroundUrl,
-                          shortPlaygroundUrl: O.none<string>(),
+                          shortPlaygroundUrl: O.none(),
                         }))
                       )
                     ),
@@ -98,7 +85,7 @@ const handle = (bot: TelegrafBot) => {
                     errors,
                     Array.map((x) => Effect.logError(x)),
                     Effect.allWith({
-                      concurrency: "unbounded",
+                      concurrency: 5,
                     })
                   );
 
@@ -109,11 +96,11 @@ const handle = (bot: TelegrafBot) => {
                         linkShortenerService.shortenLink({
                           url: x.playgroundUrl,
                         }),
+                        Effect.retry(Schedule.exponential("2 seconds", 3)),
                         Effect.map((_) => ({
                           ...x,
                           shortPlaygroundUrl: O.some(_.shortened),
                         })),
-                        Effect.retry(Schedule.exponential("2 seconds", 3)),
                         Effect.either
                       )
                     ),
@@ -126,9 +113,9 @@ const handle = (bot: TelegrafBot) => {
                       disable_notification: true,
                       link_preview_options: { is_disabled: true },
                       // reply_to_message_id: context.message.message_id,
-                    }),
-                    Effect.tap(Effect.log),
-                    Effect.either
+                    })
+                    // Effect.tap(Effect.log),
+                    // Effect.either
                   );
 
                   const [editErrors, editMessages] = yield* pipe(
@@ -142,23 +129,23 @@ const handle = (bot: TelegrafBot) => {
                     Effect.all
                   );
 
-                  if (answerMessage._tag === "Right") {
-                    yield* pipe(
-                      context.editMessageText(
-                        AT.create(editMessages),
-                        answerMessage.right.message_id,
-                        {
-                          // disable_web_page_preview: true,
-                          link_preview_options: { is_disabled: true },
-                          parse_mode: "MarkdownV2",
-                        }
-                      ),
-                      Effect.tap(Effect.log),
-                      Effect.either
-                    );
-                  } else {
-                    yield* pipe(Effect.logError(answerMessage.left));
-                  }
+                  // if (answerMessage._tag === "Right") {
+                  yield* pipe(
+                    context.editMessageText(
+                      AT.create(editMessages),
+                      answerMessage.message_id,
+                      {
+                        // disable_web_page_preview: true,
+                        link_preview_options: { is_disabled: true },
+                        parse_mode: "MarkdownV2",
+                      }
+                    ),
+                    Effect.tap(Effect.log),
+                    Effect.either
+                  );
+                  // } else {
+                  //   yield* pipe(Effect.logError(answerMessage.left));
+                  // }
                 });
               },
             })
@@ -167,42 +154,22 @@ const handle = (bot: TelegrafBot) => {
       )
     )
   );
-};
-
-const program = Effect.gen(function* () {
-  const telegrafService = yield* Telegraf.Telegraf;
-  const { bot, launch } = yield* telegrafService.init();
-  yield* handle(bot).pipe(
-    Effect.provide(TwoSlashLive),
-    Effect.provide(LinkShortenerOptionsLive),
-    Effect.catchAll(Effect.log),
-    Effect.scoped,
-    launch
-  );
 });
 
-const runnable = program.pipe(Effect.scoped, Effect.provide(TelegrafLive));
+export const runnable = pipe(
+  TGF.Telegraf.Launch(handle),
 
-Effect.runPromiseExit(runnable).then(
-  Exit.match({
-    onFailure: (x) => {
-      console.log("runPromiseExit exit onFailure", x._tag);
-      console.dir(x, { depth: 1000 });
-    },
-    onSuccess: () => {
-      console.log("runPromiseExit exit onSuccess");
-    },
-  })
+  Layer.provide(TS.TwoSlash.Default),
+  Layer.provide(LS.LinkShortener.Default),
+  Layer.provide(TelegrafBot.Default),
+  Layer.provide(TGF.Telegraf.Live),
+  Layer.provide(TelegrafOptions.options({}))
 );
 
-const port = process.env["PORT"];
+async function run() {
+  const qwe = Effect.runPromise(Layer.launch(runnable));
 
-if (port) {
-  http
-    .createServer((_req, res) => {
-      res.writeHead(200, { "Content-Type": "text/plain" });
-      res.write("Hello World!");
-      res.end();
-    })
-    .listen(Number(port));
+  console.dir(qwe);
 }
+
+run();

@@ -6,24 +6,10 @@ export class PrettierOptions extends Context.Tag("@prettier/PrettierOptions")<
   _Prettier.Options
 >() {}
 
-export class Prettier extends Effect.Tag("@prettier/Prettier")<
-  Prettier,
-  PrettierService
->() {}
-export interface PrettierService
-  extends Effect.Effect.Success<typeof makeLive> {}
+export class Prettier extends Effect.Service()("@prettier/Prettier", {
+  effect: Effect.gen(function*(){
+    const options = yield* PrettierOptions
 
-export enum ErrorType {
-  FORMAT = "FORMAT::PrettierErrorType",
-}
-
-class PrettierFormatError extends Data.TaggedError(ErrorType.FORMAT)<{
-  readonly source: string;
-  readonly options: _Prettier.Options;
-}> {}
-
-const makeLive = PrettierOptions.pipe(
-  Effect.map((options) => {
     const format = (source: string) =>
       Effect.tryPromise({
         try: () => _Prettier.format(source, options),
@@ -34,5 +20,13 @@ const makeLive = PrettierOptions.pipe(
       format,
     } as const;
   })
-);
-export const PrettierLive = Layer.effect(Prettier, makeLive);
+}) {}
+
+export enum ErrorType {
+  FORMAT = "FORMAT::PrettierErrorType",
+}
+
+class PrettierFormatError extends Data.TaggedError(ErrorType.FORMAT)<{
+  readonly source: string;
+  readonly options: _Prettier.Options;
+}> {}

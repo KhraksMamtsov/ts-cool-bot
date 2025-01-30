@@ -12,7 +12,7 @@
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "noPropertyAccessFromIndexSignature": true,
-    "rootDir": "src",
+    "rootDir": ".",
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
@@ -32,6 +32,7 @@
     ]
   },
   "include": [
+    "api/**/*",
     "src/**/*"
   ],
   "exclude": [

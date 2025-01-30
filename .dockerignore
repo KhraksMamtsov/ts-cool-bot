@@ -1,0 +1,38 @@
+# Убираем node_modules, так как зависимости устанавливаются в контейнере
+node_modules/
+
+# Логи и другие временные файлы
+*.log
+*.env
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Папки и файлы IDE и редакторов
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Исключаем все файлы Git
+.git/
+.gitignore
+
+# Папки для сборки проекта (если используются)
+dist/
+build/
+
+# Исключаем зависимости, кэш и настройки pnpm
+.pnpm/
+.pnpm-debug.log
+*.tgz
+
+# Файлы ОС
+.DS_Store
+Thumbs.db
+
+# Локальные конфигурации
+*.lock
+
+# Если используется TypeScript, исключаем исходные карты
+*.map
