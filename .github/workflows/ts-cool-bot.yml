@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest # Используем последнюю версию Ubuntu для выполнения
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
@@ -26,7 +26,4 @@ jobs:
         run: docker build -t tscoolbot-${{ github.run_number }} .
 
       - name: Run Docker container with secret
-        run: docker run -e TELEGRAF_BOT_TOKEN='${{ secrets.TELEGRAM_BOT_TOKEN }}' -p 3000:3000 tscoolbot-${{ github.run_number }}
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }} # Передаем секрет как переменную окружения
-          LINK_SHORTENER_URL: ${{ env.LINK_SHORTENER_URL }} # Передаем секрет как переменную окружения
+        run: docker run -e TELEGRAF_BOT_TOKEN='${{ secrets.TELEGRAM_BOT_TOKEN }}' -e LINK_SHORTENER_URL='${{ env.LINK_SHORTENER_URL }}' -p 3000:3000 tscoolbot-${{ github.run_number }}
