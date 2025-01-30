@@ -1,0 +1,11 @@
+name: Hello World Manual Action From RPi
+
+on:
+  workflow_dispatch:
+
+jobs:
+  say-hello:
+    runs-on: self-hosted
+    steps:
+      - name: Say Hello
+        run: echo "Hello, World! From RPi"
