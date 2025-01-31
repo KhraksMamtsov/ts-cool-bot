@@ -93,7 +93,10 @@ const handle = Effect.gen(function* () {
                         linkShortenerService.shortenLink({
                           url: x.playgroundUrl,
                         }),
-                        Effect.retry(Schedule.exponential("2 seconds", 3)),
+                        Effect.retry({
+                          schedule: Schedule.exponential("2 seconds", 3),
+                          times: 4,
+                        }),
                         Effect.map((_) => ({
                           ...x,
                           shortPlaygroundUrl: O.some(_.shortened),
