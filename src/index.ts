@@ -37,9 +37,6 @@ const handle = Effect.gen(function* () {
     Stream.run(
       Sink.forEach(
         flow((context) => {
-          // if (true === true) {
-          //   throw "123";
-          // }
           if (context._tag === TelegrafBotPayload.HELP) {
             return context
               .replyWithMarkdown(
