@@ -3,7 +3,7 @@ name: Build and Deploy Docker Image
 on:
   push:
     branches:
-      - main # Запускать при пуше в основную ветку
+      - main
 
 jobs:
   build:
@@ -11,16 +11,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3 # Клонируем репозиторий
+        uses: actions/checkout@v3
 
       - name: Stop and remove old container with prefix tscoolbot-
-        run: docker ps -q --filter "name=tscoolbot-" | xargs -r docker stop | xargs -r docker rm -f
+        run: docker container ls --filter name="tscoolbot-.*" -aq | xargs -r docker rm -f
 
       - name: Remove old Docker images with prefix tscoolbot-
-        run: docker images --filter=reference='tscoolbot-*' -q | xargs -r docker rmi -f
-
-      # - name: Set up Docker Buildx
-      #   uses: docker/setup-buildx-action@v2  # Устанавливаем Docker Buildx для кросс-платформенной сборки
+        run: docker images --filter name="tscoolbot-.*" -aq | xargs -r docker rmi -f
 
       - name: Build Docker image
         run: docker build -t tscoolbot-${{ github.run_number }} .
