@@ -29,4 +29,4 @@ jobs:
         env:
           TELEGRAF_BOT_TOKEN: ${{ secrets.TELEGRAF_BOT_TOKEN }}
           LINK_SHORTENER_URL: ${{ env.LINK_SHORTENER_URL }}
-        run: docker run -e TELEGRAF_BOT_TOKEN="$TELEGRAF_BOT_TOKEN" -e LINK_SHORTENER_URL="$LINK_SHORTENER_URL" --name tscoolbot-${{ github.run_number }} tscoolbot-${{ github.run_number }}
+        run: docker run -e TELEGRAF_BOT_TOKEN=$TELEGRAF_BOT_TOKEN -e LINK_SHORTENER_URL=$LINK_SHORTENER_URL --name tscoolbot-${{ github.run_number }} tscoolbot-${{ github.run_number }}
