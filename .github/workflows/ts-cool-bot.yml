@@ -23,7 +23,7 @@ jobs:
       #   uses: docker/setup-buildx-action@v2  # Устанавливаем Docker Buildx для кросс-платформенной сборки
 
       - name: Build Docker image
-        run: docker build -t tscoolbot-${{ github.run_number }} .
+        run: docker build -t tscoolbot-${{ github.run }} .
 
       - name: Run Docker container with secret
-        run: docker run -e TELEGRAF_BOT_TOKEN='${{ secrets.TELEGRAM_BOT_TOKEN }}' -e LINK_SHORTENER_URL='${{ env.LINK_SHORTENER_URL }}' -p 3000:3000 tscoolbot-${{ github.run_number }}
+        run: docker run -e TELEGRAF_BOT_TOKEN='${{ secrets.TELEGRAM_BOT_TOKEN }}' -e LINK_SHORTENER_URL='${{ env.LINK_SHORTENER_URL }}' --name tscoolbot-${{ github.run_number }} tscoolbot-${{ github.run_number }}

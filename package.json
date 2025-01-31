@@ -5,10 +5,10 @@
   "main": "index.js",
   "type": "module",
   "engines": {
-    "node": "20"
+    "node": "22"
   },
   "scripts": {
-    "build": "rimraf ./build && tsc",
+    "build": "rimraf ./build && tsc --verbose",
     "copy": "copyfiles --flat src/index.hbs src/styles.css build",
     "build:dev:watch": "tsc --watch",
     "typecheck": "tsc --noEmit",
