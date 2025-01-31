@@ -27,6 +27,6 @@ jobs:
 
       - name: Run Docker container with secret
         env:
-          TELEGRAF_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAF_BOT_TOKEN: ${{ secrets.TELEGRAF_BOT_TOKEN }}
           LINK_SHORTENER_URL: ${{ env.LINK_SHORTENER_URL }}
         run: docker run --name tscoolbot-${{ github.run_number }} tscoolbot-${{ github.run_number }}
