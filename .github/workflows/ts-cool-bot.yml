@@ -6,22 +6,29 @@ on:
       - main
 
 jobs:
+  cleanup:
+    runs-on: self-hosted
+    steps:
+      - name: Stop and remove old containers with prefix tscoolbot-
+        run: docker container ls --filter name="tscoolbot-.*" -aq | xargs -r docker rm -f
+
+      - name: Remove old Docker images with prefix tscoolbot-
+        run: docker images --filter reference="tscoolbot-.*" -q | xargs -r docker rmi -f
+
   build:
     runs-on: self-hosted
-
+    needs: cleanup
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Stop and remove old container with prefix tscoolbot-
-        run: docker container ls --filter name="tscoolbot-.*" -aq | xargs -r docker rm -f
-
-      - name: Remove old Docker images with prefix tscoolbot-
-        run: docker images --filter name="tscoolbot-.*" -aq | xargs -r docker rmi -f
-
       - name: Build Docker image
         run: docker build -t tscoolbot-${{ github.run_number }} .
 
+  deploy:
+    runs-on: self-hosted
+    needs: build
+    steps:
       - name: Run Docker container with secret
         env:
           TELEGRAF_BOT_TOKEN: ${{ secrets.TELEGRAF_BOT_TOKEN }}
