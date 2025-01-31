@@ -8,7 +8,7 @@
     "node": "22"
   },
   "scripts": {
-    "build": "rimraf ./build && tsc --verbose",
+    "build": "rimraf ./build && tsc",
     "copy": "copyfiles --flat src/index.hbs src/styles.css build",
     "build:dev:watch": "tsc --watch",
     "typecheck": "tsc --noEmit",
