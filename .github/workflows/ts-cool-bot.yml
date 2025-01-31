@@ -13,7 +13,7 @@ jobs:
         run: docker container ls --filter name="tscoolbot-.*" -aq | xargs -r docker rm -f
 
       - name: Remove old Docker images with prefix tscoolbot-
-        run: docker images --filter reference="tscoolbot-.*" -q | xargs -r docker rmi -f
+        run: docker images --filter reference="tscoolbot-*" -aq | xargs -r docker rmi -f
 
   build:
     runs-on: self-hosted
